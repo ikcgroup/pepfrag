@@ -7,7 +7,7 @@ generate theoretical ions useful for annotating mass spectra (MSn).
 import collections
 import enum
 
-from generate_ions import FIXED_MASSES, IonType, IonGenerator
+from ion_generators import FIXED_MASSES, IonType, IonGenerator
 
 
 PeptideMass = collections.namedtuple("PeptideMass", ["nterm", "seq", "cterm"])
@@ -128,7 +128,7 @@ class Peptide():
                 ions.extend(generator(mass, self.charge, len(self.seq), radical=self.radical, **ion_types[ion_type]))
             else:
                 masses = None
-                if ion_type in [IonType.b, IonType.c, IonType.a]:
+                if ion_type in [IonType.b, IonType.a, IonType.c]:
                     masses = bm
                 elif ion_type in [IonType.y, IonType.z]:
                     masses = ym
