@@ -46,6 +46,7 @@ AA_MASSES = {
     
 DEFAULT_IONS = {
     IonType.precursor: {},
+    IonType.imm: {},
     IonType.b: {},
     IonType.y: {},
     IonType.a: {},
@@ -69,7 +70,7 @@ class Peptide():
         Args:
             sequence (str): The peptide sequence (single character format).
             charge (int): The charge state of the peptide.
-            modifications (list):
+            modifications (list): TODO: ModSites?
             
         """
         self.seq = sequence
@@ -125,7 +126,12 @@ class Peptide():
         for ion_type in ion_types:
             generator = IonGenerator.factory(ion_type)
             if ion_type == IonType.precursor:
-                ions.extend(generator(mass, self.charge, len(self.seq), radical=self.radical, **ion_types[ion_type]))
+                ions.extend(generator(mass, self.charge, len(self.seq),
+                                      radical=self.radical,
+                                      **ion_types[ion_type]))
+            elif ion_type == IonType.imm:
+                ions.extend(generator(self.mass.seq, self.charge, self.seq,
+                                      self.mods, **ion_types[ion_type]))
             else:
                 masses = None
                 if ion_type in [IonType.b, IonType.a, IonType.c]:
@@ -138,7 +144,8 @@ class Peptide():
                         f"Invalid IonType {ion_type} specified")
                         
                 ions.extend(
-                    generator(masses, self.charge, radical=self.radical, **ion_types[ion_type]))
+                    generator(masses, self.charge, radical=self.radical,
+                              **ion_types[ion_type]))
             
         return ions
         

@@ -213,6 +213,22 @@ class PrecursorIonGenerator(IonGenerator):
         return []
         
         
+class ImmoniumIonGenerator(IonGenerator):
+    def generate(self, seq_masses, charge, sequence, mods, neutral_losses=[],
+                 radical=False):
+        self.sequence = sequence
+        self.mod_sites = [mod.site - 1 for mod in mods
+                          if isinstance(mod.site, int)]
+
+        return super().generate(seq_masses, charge, neutral_losses, radical)
+        
+    def base_ions(self, mass, pos):
+        return [Ion(mass, f"imm({self.sequence[pos]}{'*' if pos in self.mod_sites else ''})", 0)]
+    
+    def fix_mass(self, mass):
+        return mass - FIXED_MASSES["CO"] + FIXED_MASSES["H"]
+        
+        
 class BIonGenerator(IonGenerator):
     def generate(self, b_masses, charge, neutral_losses=["H2O", "NH3", "CO"],
                  radical=False):
@@ -275,7 +291,9 @@ class AIonGenerator(IonGenerator):
 class CIonGenerator(IonGenerator):
     def generate(self, b_masses, charge, neutral_losses=[],
                  radical=False):
-        return super().generate(b_masses, charge, neutral_losses, radical)
+        # Before passing to the base class method, the last mass is removed
+        # since the c{seq_len} ion is not a sensible annotation
+        return super().generate(b_masses[:-1], charge, neutral_losses, radical)
         
     def base_ions(self, mass, pos):
         return [Ion(mass, f"c{pos + 1}[+]", pos + 1)]
@@ -313,6 +331,7 @@ class ZIonGenerator(IonGenerator):
                
 class IonType(enum.Enum):
     precursor = PrecursorIonGenerator
+    imm = ImmoniumIonGenerator
     b = BIonGenerator
     y = YIonGenerator
     a = AIonGenerator
