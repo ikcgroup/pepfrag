@@ -180,15 +180,17 @@ class IonGenerator(metaclass=abc.ABCMeta):
 # TODO: refactor this to be similar to the other IonGenerators - will require
 # the interface to be modified for extra parameters 
 class PrecursorIonGenerator(IonGenerator):
-    def generate(self, mass, seq_len, charge,
-                 neutral_losses=["H2O", "NH3", "CO2"], radical=False):
+    def generate(self, mass, charge, seq_len, mods,
+                 neutral_losses=["H2O", "NH3", "CO2"], itraq=False,
+                 radical=False):
         """
         Generates the precursor ions for the peptide.
         
         Args:
             mass (float): The mass of the peptide.
-            seq_len (int): The length of the peptide sequence.
             charge (int): The charge state of the peptide.
+            seq_len (int): The length of the peptide sequence.
+            mods (list of ModSites): The modifications applied to the peptide.
             
         Returns:
             The list of precursor Ions.
@@ -206,6 +208,11 @@ class PrecursorIonGenerator(IonGenerator):
             ions.extend([
                 Ion(mass - FIXED_MASSES[nl], f"[M-{nl}][{charge_symbol}]", seq_len)
                 for nl in neutral_losses])
+                
+            if any(ms.mod == 'iTRAQ8plex' and ms.site in ["cterm", "nterm"]
+                   for ms in mods):
+                ions.append(Ion(mass + FIXED_MASSES["H"] - FIXED_MASSES["tag"],
+                                  f"M-iT8[{charge_symbol}]", seq_len))
                 
         return ions
         
@@ -327,8 +334,8 @@ class ZIonGenerator(IonGenerator):
     def neutral_losses(self, mass, pos, neutral_losses):
         return [Ion(mass - FIXED_MASSES[nl], f"[z{pos + 1}-{nl}][+]", pos + 1)
                 for nl in neutral_losses]
-                
-               
+
+
 class IonType(enum.Enum):
     precursor = PrecursorIonGenerator
     imm = ImmoniumIonGenerator
