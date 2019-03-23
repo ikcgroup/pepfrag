@@ -79,7 +79,27 @@ class Peptide():
         self.mass_type = mass_type
         self.radical = radical
         
-        self.mass = self.calculate_mass()
+    @property
+    def peptide_mass(self):
+        return self.calculate_mass()
+        
+    @property
+    def mass(self):
+        pep_mass = self.peptide_mass
+        mass = sum(pep_mass.seq) + FIXED_MASSES["H2O"]
+        if pep_mass.nterm is not None:
+            mass += pep_mass.nterm
+        return mass
+        
+    def __repr__(self):
+        """
+        Constructs the official representation of the Peptide object.
+        
+        Returns:
+            string: Official representation of the Peptide object.
+            
+        """
+        return f"<{self.__class__.__name__} {self.__dict__}>"
         
     def calculate_mass(self):
         """
@@ -115,9 +135,7 @@ class Peptide():
             ion_types (dict):
             
         """
-        mass = sum(self.mass.seq) + FIXED_MASSES["H2O"]
-        if self.mass.nterm is not None:
-            mass += self.mass.nterm
+        mass = self.mass
             
         bm, ym = self._ion_masses()
         
@@ -127,7 +145,7 @@ class Peptide():
             generator = IonGenerator.factory(ion_type)
             if ion_type == IonType.precursor:
                 ions.extend(generator(mass, self.charge, len(self.seq),
-                                      radical=self.radical,
+                                      self.mods, radical=self.radical,
                                       **ion_types[ion_type]))
             elif ion_type == IonType.imm:
                 ions.extend(generator(self.mass.seq, self.charge, self.seq,
@@ -159,17 +177,19 @@ class Peptide():
 
         """
         seq_len = len(self.seq)
+        
+        pep_mass = self.peptide_mass
 
         # The base mass for y-type ions
-        y_base = (FIXED_MASSES["H2O"] if self.mass.cterm is None
-                  else self.mass.cterm)
-        rev_seq_masses = self.mass.seq[::-1]
+        y_base = (FIXED_MASSES["H2O"] if self.pep_mass.cterm is None
+                  else self.pep_mass.cterm)
+        rev_seq_masses = self.pep_mass.seq[::-1]
         y_ions = [y_base + sum(rev_seq_masses[:ii])
                   for ii in range(1, seq_len + 1)]
                   
         # The base mass for b-type ions
-        b_base = 0. if self.mass.nterm is None else self.mass.nterm
-        b_ions = [b_base + sum(self.mass.seq[:ii])
+        b_base = 0. if self.pep_mass.nterm is None else self.pep_mass.nterm
+        b_ions = [b_base + sum(self.pep_mass.seq[:ii])
                   for ii in range(1, seq_len + 1)]
         
         return b_ions, y_ions
