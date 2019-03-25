@@ -113,6 +113,21 @@ class Peptide():
 
         """
         return f"<{self.__class__.__name__} {self.__dict__}>"
+        
+    def __hash__(self):
+        """
+        Implements the hash function for the Peptide object.
+        
+        """
+        return hash((self.seq, self.charge))
+        
+    def __eq__(self, other):
+        """
+        Implements the equality test for the Peptide object.
+        
+        """
+        return (self.seq, self.charge, self.mods) == \
+               (other.seq, other.charge, other.mods)
 
     def calculate_mass(self) -> PeptideMass:
         """
