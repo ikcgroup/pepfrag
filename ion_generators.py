@@ -21,6 +21,7 @@ FIXED_MASSES = {
     "CO2": 43.989830
 }
 
+
 # IonGenerator is the base class for all ion generators. It provides a factory
 # method to construct the relevant generator based on the given IonType enum.
 # Subclasses of IonGenerator must implement a generate method, which is called
@@ -48,7 +49,7 @@ class IonGenerator(metaclass=abc.ABCMeta):
             IonGenerator (subclass)
 
         '''
-        return ion_type.value()
+        return TYPE_GENERATOR_MAP[ion_type]()
 
     def __call__(self, *args, **kwargs):
         '''
@@ -390,20 +391,32 @@ class ZIonGenerator(IonGenerator):
     def neutral_losses(self, mass, pos, neutral_losses):
         return [Ion(mass - FIXED_MASSES[nl], f"[z{pos + 1}-{nl}][+]", pos + 1)
                 for nl in neutral_losses]
-
-
+                
+                
 class IonType(enum.Enum):
     """
-    An enumeration mapping the ion types to their generator classes.
+    An enumeration of possible fragment ion types
 
     """
-    precursor = PrecursorIonGenerator
-    imm = ImmoniumIonGenerator
-    b = BIonGenerator
-    y = YIonGenerator
-    a = AIonGenerator
-    c = CIonGenerator
-    z = ZIonGenerator
+    precursor = enum.auto()
+    imm = enum.auto()
+    b = enum.auto()
+    y = enum.auto()
+    a = enum.auto()
+    c = enum.auto()
+    z = enum.auto()
+
+
+TYPE_GENERATOR_MAP = {
+    IonType.precursor: PrecursorIonGenerator,
+    IonType.imm: ImmoniumIonGenerator,
+    IonType.b: BIonGenerator,
+    IonType.y: YIonGenerator,
+    IonType.a: AIonGenerator,
+    IonType.c: CIonGenerator,
+    IonType.z: ZIonGenerator
+}
+
 
 
 def _charge_ions(ions, charge):
