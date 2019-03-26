@@ -103,7 +103,7 @@ class IonGenerator(metaclass=abc.ABCMeta):
 
             ions.extend(self.neutral_losses(ion_mass, pos, neutral_losses))
 
-        all_ions = ions
+        all_ions = list(ions)
         for _charge in range(1, charge):
             all_ions.extend(_charge_ions(ions, _charge + 1))
 
@@ -416,7 +416,6 @@ TYPE_GENERATOR_MAP = {
     IonType.c: CIonGenerator,
     IonType.z: ZIonGenerator
 }
-
 
 
 def _charge_ions(ions, charge):
