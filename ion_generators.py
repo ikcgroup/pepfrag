@@ -430,6 +430,8 @@ def _charge_ions(ions, charge):
         A list of multiply charged Ions.
 
     """
+    # Empirical position-charge rule to exclude fragment ion charge states
+    # which aren't sensible
     return [Ion((ion.mass + (charge - 1) * FIXED_MASSES["H"]) / float(charge),
                 ion.label.replace("+", f"{charge}+"), ion.pos)
-            for ion in ions]
+            for ion in ions if ion.pos >= 2 * charge - 1]
