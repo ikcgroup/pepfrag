@@ -205,22 +205,26 @@ class PrecursorIonGenerator(IonGenerator):
 
         """
         ions = []
-        for cs in range(charge):
-            charge_symbol = f"{'•' if radical else ''}{cs + 1 if cs > 0 else ''}+"
-            ions.append(Ion(mass + FIXED_MASSES["H"],
+        for cs in range(1, charge + 1):
+            charge_symbol = f"{'•' if radical else ''}{cs if cs > 1 else ''}+"
+            ions.append(Ion(mass / float(cs) + FIXED_MASSES["H"],
                             f"[M+H][{charge_symbol}]", seq_len))
 
             if radical:
-                ions.append(Ion(mass, f"M[{charge_symbol}]", seq_len))
+                ions.append(Ion(mass / float(cs), f"M[{charge_symbol}]",
+                            seq_len))
 
             ions.extend([
-                Ion(mass - FIXED_MASSES[nl], f"[M-{nl}][{charge_symbol}]", seq_len)
+                Ion((mass - FIXED_MASSES[nl]) / float(cs) + FIXED_MASSES["H"],
+                    f"[M-{nl}][{charge_symbol}]", seq_len)
                 for nl in neutral_losses])
 
             if any(ms.mod == 'iTRAQ8plex' and ms.site in ["cterm", "nterm"]
                    for ms in mods):
-                ions.append(Ion(mass + FIXED_MASSES["H"] - FIXED_MASSES["tag"],
-                                f"M-iT8[{charge_symbol}]", seq_len))
+                ions.append(
+                    Ion((mass - FIXED_MASSES["tag"]) / float(cs)
+                         + FIXED_MASSES["H"],
+                        f"M-iT8[{charge_symbol}]", seq_len))
 
         return ions
 
@@ -266,7 +270,7 @@ class BIonGenerator(IonGenerator):
         """
         if neutral_losses is None:
             neutral_losses = ["H2O", "NH3", "CO"]
-        return super().generate(b_masses, charge, neutral_losses, radical)
+        return super().generate(b_masses[:-1], charge, neutral_losses, radical)
 
     def base_ions(self, mass, pos):
         return [Ion(mass, f"b{pos + 1}[+]", pos + 1)]
@@ -294,7 +298,7 @@ class YIonGenerator(IonGenerator):
         """
         if neutral_losses is None:
             neutral_losses = ["NH3", "H2O"]
-        return super().generate(y_masses, charge, neutral_losses, radical)
+        return super().generate(y_masses[:-1], charge, neutral_losses, radical)
 
     def base_ions(self, mass, pos):
         return [Ion(mass, f"y{pos + 1}[+]", pos + 1)]
@@ -321,7 +325,7 @@ class AIonGenerator(IonGenerator):
         Pass specific defaults back to base class.
 
         """
-        return super().generate(b_masses, charge, neutral_losses, radical)
+        return super().generate(b_masses[:-1], charge, neutral_losses, radical)
 
     def base_ions(self, mass, pos):
         return [Ion(mass, f"a{pos + 1}[+]", pos + 1)]
