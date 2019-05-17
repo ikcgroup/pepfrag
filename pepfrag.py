@@ -4,11 +4,13 @@ This module is used to fragment a peptide, including its modifications, to
 generate theoretical ions useful for annotating mass spectra (MSn).
 
 """
+from __future__ import annotations
+
 import collections
 import enum
-from typing import List, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Type
 
-from ion_generators import FIXED_MASSES, IonType, IonGenerator
+from ion_generators import FIXED_MASSES, Ion, IonType, IonGenerator
 
 
 PeptideMass = collections.namedtuple("PeptideMass", ["nterm", "seq", "cterm"])
@@ -23,7 +25,9 @@ class MassType(enum.Enum):
     mono = enum.auto()
     avg = enum.auto()
 
+
 Mass = collections.namedtuple('Mass', ['mono', 'avg'])
+
 
 AA_MASSES = {
     'G': Mass(57.02146, 57.052),
@@ -49,7 +53,7 @@ AA_MASSES = {
 }
 
 
-DEFAULT_IONS = {
+DEFAULT_IONS: Dict[IonType, Dict[str, Any]] = {
     IonType.precursor: {},
     IonType.imm: {},
     IonType.b: {},
@@ -67,8 +71,9 @@ class Peptide():
     used to fragment the peptides for mass spectrum annotation.
 
     """
-    def __init__(self, sequence, charge, modifications, mass_type=MassType.mono,
-                 radical=False) -> None:
+    def __init__(self, sequence: str, charge: int, modifications,
+                 mass_type: MassType = MassType.mono,
+                 radical: bool = False) -> None:
         """
         Initializes the Peptide object.
 
@@ -83,6 +88,59 @@ class Peptide():
         self.mods = modifications
         self.mass_type = mass_type
         self.radical = radical
+
+        self.fragment_ions: Optional[List[Ion]] = None
+        
+    @property
+    def seq(self) -> str:
+        """
+        Returns the peptide sequence.
+
+        """
+        return self.__seq
+        
+    @seq.setter
+    def seq(self, seq: str):
+        """
+        Sets the sequence and clears the fragment_ions.
+
+        """
+        self._clean_fragment_ions()
+        self.__seq = seq
+        
+    @property
+    def charge(self) -> int:
+        """
+        Returns the peptide charge.
+
+        """
+        return self.__charge
+        
+    @charge.setter
+    def charge(self, charge: int):
+        """
+        Sets the charge and clears the fragment_ions.
+
+        """
+        self._clean_fragment_ions()
+        self.__charge = charge
+        
+    @property
+    def mods(self) -> List:
+        """
+        Returns the list of ModSites.
+
+        """
+        return self.__mods
+        
+    @mods.setter
+    def mods(self, mods: List):
+        """
+        Sets the modifications and clears the fragment_ions.
+
+        """
+        self._clean_fragment_ions()
+        self.__mods = mods
 
     @property
     def peptide_mass(self) -> PeptideMass:
@@ -113,21 +171,48 @@ class Peptide():
 
         """
         return f"<{self.__class__.__name__} {self.__dict__}>"
-        
+
+    def __str__(self) -> str:
+        """
+        Constructs the string representation of the Peptide object.
+
+        Returns:
+            string.
+
+        """
+        out = {
+            "seq": self.seq,
+            "charge": self.charge,
+            "mods": self.mods,
+            "mass_type": self.mass_type,
+            "radical": self.radical,
+            "fragment_ions": f"{len(self.fragment_ions) if self.fragment_ions is not None else 0} ions"
+        }
+        return f"<{self.__class__.__name__} {out}>"
+
     def __hash__(self):
         """
         Implements the hash function for the Peptide object.
-        
+
         """
         return hash((self.seq, self.charge))
-        
-    def __eq__(self, other):
+
+    def __eq__(self, other: object) -> bool:
         """
         Implements the equality test for the Peptide object.
-        
+
         """
+        if not isinstance(other, Peptide):
+            raise NotImplementedError()
         return (self.seq, self.charge, self.mods) == \
                (other.seq, other.charge, other.mods)
+               
+    def _clean_fragment_ions(self):
+        """
+        Cleans the cached fragment ions.
+
+        """
+        self.fragment_ions = None
 
     def calculate_mass(self) -> PeptideMass:
         """
@@ -155,7 +240,27 @@ class Peptide():
 
         return PeptideMass(nterm_mass, seq_masses, cterm_mass)
 
-    def fragment(self, ion_types=DEFAULT_IONS) -> List:
+    def fragment(self,
+                 ion_types: Dict[IonType, Dict[str, Any]] = DEFAULT_IONS,
+                 force: bool = False) -> List[Ion]:
+        """
+        Fragments the peptide to generate the ion types specified.
+
+        Args:
+            ion_types (dict):
+
+        """
+        if self.fragment_ions is not None and not force:
+            # Use the cached ions
+            return self.fragment_ions
+
+        # Cache the ions
+        self.fragment_ions = self._fragment(ion_types)
+
+        return self.fragment_ions
+
+    def _fragment(self,
+                  ion_types: Dict[IonType, Dict[str, Any]]) -> List[Ion]:
         """
         Fragments the peptide to generate the ion types specified.
 
@@ -168,10 +273,10 @@ class Peptide():
 
         b_masses, y_masses = self._ion_masses()
 
-        ions = []
+        ions: List[Ion] = []
 
         for ion_type in ion_types:
-            generator = IonGenerator.factory(ion_type)
+            generator: Type[IonGenerator] = IonGenerator.factory(ion_type)
             if ion_type == IonType.precursor:
                 ions.extend(generator(mass, self.charge, len(self.seq),
                                       self.mods, radical=self.radical,

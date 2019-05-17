@@ -3,10 +3,12 @@
 A module providing classes for generating fragment ions of a peptide.
 
 """
+from __future__ import annotations
 
 import abc
 import collections
 import enum
+from typing import Any, List, Optional, Sequence, Type
 
 Ion = collections.namedtuple("Ion", ["mass", "label", "pos"])
 
@@ -36,7 +38,7 @@ class IonGenerator(metaclass=abc.ABCMeta):
 
     '''
     @staticmethod
-    def factory(ion_type):
+    def factory(ion_type) -> Type[IonGenerator]:
         '''
         Constructs the relevant subclass of IonGenerator based on the
         ion_type.
@@ -51,7 +53,7 @@ class IonGenerator(metaclass=abc.ABCMeta):
         '''
         return TYPE_GENERATOR_MAP[ion_type]()
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> List[Ion]:
         '''
         Makes the IonGenerator class callable. When called, the generate
         method, which must be overridden, will be called using all of the
@@ -64,7 +66,9 @@ class IonGenerator(metaclass=abc.ABCMeta):
         return self.generate(*args, **kwargs)
 
     @abc.abstractmethod
-    def generate(self, masses, charge, neutral_losses, radical):
+    def generate(self, masses: Sequence[float], charge: int,
+                 neutral_losses: Optional[Sequence[str]],
+                 radical: bool) -> List[Ion]:
         '''
         Generates the fragment ions for the peptide, with the type according
         to the IonGenerator used.
@@ -81,7 +85,7 @@ class IonGenerator(metaclass=abc.ABCMeta):
         Args:
             masses (list): A list of peptide ion masses (float).
             charge (int): The charge state of the peptide.
-            neutral_losses (list): A list of strings indicated for which
+            neutral_losses (list): A list of strings indicating for which
                                    neutral losses fragment ions should be
                                    created. These must be found in
                                    FIXED_MASSES.
@@ -92,7 +96,7 @@ class IonGenerator(metaclass=abc.ABCMeta):
             List of generated Ions.
 
         '''
-        ions = []
+        ions: List[Ion] = []
         for pos, mass in enumerate(masses):
             ion_mass = self.fix_mass(mass)
 
@@ -101,7 +105,8 @@ class IonGenerator(metaclass=abc.ABCMeta):
             if radical:
                 ions.extend(self.radical(ion_mass, pos))
 
-            ions.extend(self.neutral_losses(ion_mass, pos, neutral_losses))
+            if neutral_losses is not None:
+                ions.extend(self.neutral_losses(ion_mass, pos, neutral_losses))
 
         all_ions = list(ions)
         for _charge in range(1, charge):
@@ -110,7 +115,7 @@ class IonGenerator(metaclass=abc.ABCMeta):
         return all_ions
 
     @abc.abstractmethod
-    def base_ions(self, mass, pos):
+    def base_ions(self, mass: float, pos: int) -> List[Ion]:
         '''
         Generates the basic fragment ion(s) for the type. For example, b1[+]
         and y[1]+.
@@ -126,7 +131,7 @@ class IonGenerator(metaclass=abc.ABCMeta):
 
         '''
 
-    def fix_mass(self, mass):
+    def fix_mass(self, mass: float) -> float:
         '''
         Given the b/y type ion mass, modifies the mass according to the ion
         type under consideration.
@@ -142,7 +147,7 @@ class IonGenerator(metaclass=abc.ABCMeta):
         '''
         return mass
 
-    def radical(self, mass, pos):
+    def radical(self, mass: float, pos: int) -> List[Ion]:
         '''
         Generates fragment ions specific to radical peptides. This method is
         only called (using the base class generate method) if the radical flag
@@ -160,7 +165,8 @@ class IonGenerator(metaclass=abc.ABCMeta):
         '''
         return []
 
-    def neutral_losses(self, mass, pos, neutral_losses):
+    def neutral_losses(self, mass: float, pos: int,
+                       neutral_losses: Sequence[str]) -> List[Ion]:
         '''
         Generates fragment ions deriving from neutral losses.
 
@@ -188,9 +194,11 @@ class PrecursorIonGenerator(IonGenerator):
     Generator for precursor ions.
 
     """
-    def generate(self, mass, charge, seq_len, mods,
-                 neutral_losses=["H2O", "NH3", "CO2"], itraq=False,
-                 radical=False):
+    def generate(self, mass: float, charge: int, seq_len: int,
+                 mods: List[Any],
+                 neutral_losses: Optional[List[str]] = None,
+                 itraq: bool = False,
+                 radical: bool = False) -> List[Ion]:
         """
         Generates the precursor ions for the peptide.
 
@@ -204,6 +212,9 @@ class PrecursorIonGenerator(IonGenerator):
             The list of precursor Ions.
 
         """
+        if neutral_losses is None:
+            neutral_losses = ["H2O", "NH3", "CO2"]
+
         ions = []
         for cs in range(1, charge + 1):
             charge_symbol = f"{'•' if radical else ''}{cs if cs > 1 else ''}+"
@@ -223,12 +234,12 @@ class PrecursorIonGenerator(IonGenerator):
                    for ms in mods):
                 ions.append(
                     Ion((mass - FIXED_MASSES["tag"]) / float(cs)
-                         + FIXED_MASSES["H"],
+                        + FIXED_MASSES["H"],
                         f"M-iT8[{charge_symbol}]", seq_len))
 
         return ions
 
-    def base_ions(self, mass, pos):
+    def base_ions(self, mass: float, pos: int) -> List[Ion]:
         return []
 
 
@@ -237,24 +248,29 @@ class ImmoniumIonGenerator(IonGenerator):
     Generator for immonium ions.
 
     """
-    def generate(self, seq_masses, charge, sequence, mods, neutral_losses=None,
-                 radical=False):
+    def generate(self, seq_masses: Sequence[float], charge: int,
+                 sequence: str, mods,
+                 neutral_losses: Optional[Sequence[str]] = None,
+                 radical: bool = False) -> List[Ion]:
         """
         Pass specific defaults back to base class.
 
         """
+        if neutral_losses is None:
+            neutral_losses = []
+
         self.sequence = sequence
         self.mod_sites = [mod.site - 1 for mod in mods
                           if isinstance(mod.site, int)]
 
         return super().generate(seq_masses, charge, neutral_losses, radical)
 
-    def base_ions(self, mass, pos):
+    def base_ions(self, mass: float, pos: int) -> List[Ion]:
         return [Ion(mass,
                     f"imm({self.sequence[pos]}"
                     f"{'*' if pos in self.mod_sites else ''})", 0)]
 
-    def fix_mass(self, mass):
+    def fix_mass(self, mass: float) -> float:
         return mass - FIXED_MASSES["CO"] + FIXED_MASSES["H"]
 
 
@@ -263,7 +279,9 @@ class BIonGenerator(IonGenerator):
     Generator for b type ions.
 
     """
-    def generate(self, b_masses, charge, neutral_losses=None, radical=False):
+    def generate(self, b_masses: Sequence[float], charge: int,
+                 neutral_losses: Optional[Sequence[str]] = None,
+                 radical: bool = False) -> List[Ion]:
         """
         Pass specific defaults back to base class.
 
@@ -272,16 +290,17 @@ class BIonGenerator(IonGenerator):
             neutral_losses = ["H2O", "NH3", "CO"]
         return super().generate(b_masses[:-1], charge, neutral_losses, radical)
 
-    def base_ions(self, mass, pos):
+    def base_ions(self, mass: float, pos: int) -> List[Ion]:
         return [Ion(mass, f"b{pos + 1}[+]", pos + 1)]
 
-    def fix_mass(self, mass):
+    def fix_mass(self, mass: float) -> float:
         return mass + FIXED_MASSES["H"]
 
-    def radical(self, mass, pos):
+    def radical(self, mass: float, pos: int) -> List[Ion]:
         return [Ion(mass, f"[b{pos + 1}-H][•+]", pos + 1)]
 
-    def neutral_losses(self, mass, pos, neutral_losses):
+    def neutral_losses(self, mass: float, pos: int,
+                       neutral_losses: Sequence[str]) -> List[Ion]:
         return [Ion(mass - FIXED_MASSES[nl], f"[b{pos + 1}-{nl}][+]", pos + 1)
                 for nl in neutral_losses]
 
@@ -291,7 +310,9 @@ class YIonGenerator(IonGenerator):
     Generator for y type ions.
 
     """
-    def generate(self, y_masses, charge, neutral_losses=None, radical=False):
+    def generate(self, y_masses: Sequence[float], charge: int,
+                 neutral_losses: Optional[Sequence[str]] = None,
+                 radical: bool = False) -> List[Ion]:
         """
         Pass specific defaults back to base class.
 
@@ -300,17 +321,18 @@ class YIonGenerator(IonGenerator):
             neutral_losses = ["NH3", "H2O"]
         return super().generate(y_masses[:-1], charge, neutral_losses, radical)
 
-    def base_ions(self, mass, pos):
+    def base_ions(self, mass: float, pos: int) -> List[Ion]:
         return [Ion(mass, f"y{pos + 1}[+]", pos + 1)]
 
-    def fix_mass(self, mass):
+    def fix_mass(self, mass: float) -> float:
         return mass + FIXED_MASSES["H"]
 
-    def radical(self, mass, pos):
+    def radical(self, mass: float, pos: int) -> List[Ion]:
         # TODO
         return []
 
-    def neutral_losses(self, mass, pos, neutral_losses):
+    def neutral_losses(self, mass: float, pos: int,
+                       neutral_losses: Sequence[str]) -> List[Ion]:
         return [Ion(mass - FIXED_MASSES[nl], f"[y{pos + 1}-{nl}][+]", pos + 1)
                 for nl in neutral_losses]
 
@@ -320,24 +342,27 @@ class AIonGenerator(IonGenerator):
     Generator for a type ions.
 
     """
-    def generate(self, b_masses, charge, neutral_losses=None, radical=False):
+    def generate(self, b_masses: Sequence[float], charge: int,
+                 neutral_losses: Optional[Sequence[str]] = None,
+                 radical: bool = False) -> List[Ion]:
         """
         Pass specific defaults back to base class.
 
         """
         return super().generate(b_masses[:-1], charge, neutral_losses, radical)
 
-    def base_ions(self, mass, pos):
+    def base_ions(self, mass: float, pos: int) -> List[Ion]:
         return [Ion(mass, f"a{pos + 1}[+]", pos + 1)]
 
-    def fix_mass(self, mass):
+    def fix_mass(self, mass: float) -> float:
         return mass + FIXED_MASSES["H"] - FIXED_MASSES["CO"]
 
-    def radical(self, mass, pos):
+    def radical(self, mass: float, pos: int) -> List[Ion]:
         return [Ion(mass - FIXED_MASSES["H"], f"[a{pos + 1}-H][•+]", pos + 1),
                 Ion(mass + FIXED_MASSES["H"], f"[a{pos + 1}+H][•+]", pos + 1)]
 
-    def neutral_losses(self, mass, pos, neutral_losses):
+    def neutral_losses(self, mass: float, pos: int,
+                       neutral_losses: Sequence[str]) -> List[Ion]:
         return [Ion(mass - FIXED_MASSES[nl], f"[a{pos + 1}-{nl}][+]", pos + 1)
                 for nl in neutral_losses]
 
@@ -347,7 +372,9 @@ class CIonGenerator(IonGenerator):
     Generator for c type ions.
 
     """
-    def generate(self, b_masses, charge, neutral_losses=None, radical=False):
+    def generate(self, b_masses: Sequence[float], charge: int,
+                 neutral_losses: Optional[Sequence[str]] = None,
+                 radical: bool = False) -> List[Ion]:
         """
         Pass specific defaults back to base class.
 
@@ -356,17 +383,18 @@ class CIonGenerator(IonGenerator):
         # since the c{seq_len} ion is not a sensible annotation
         return super().generate(b_masses[:-1], charge, neutral_losses, radical)
 
-    def base_ions(self, mass, pos):
+    def base_ions(self, mass: float, pos: int) -> List[Ion]:
         return [Ion(mass, f"c{pos + 1}[+]", pos + 1)]
 
-    def fix_mass(self, mass):
+    def fix_mass(self, mass: float) -> float:
         return mass + FIXED_MASSES["N"] + 3 * FIXED_MASSES["H"]
 
-    def radical(self, mass, pos):
+    def radical(self, mass: float, pos: int) -> List[Ion]:
         return [Ion(mass + 2 * FIXED_MASSES["H"], f"[c{pos + 1}+2H][•+]",
                     pos + 1)]
 
-    def neutral_losses(self, mass, pos, neutral_losses):
+    def neutral_losses(self, mass: float, pos: int,
+                       neutral_losses: Sequence[str]) -> List[Ion]:
         return [Ion(mass - FIXED_MASSES[nl], f"[c{pos + 1}-{nl}][+]", pos + 1)
                 for nl in neutral_losses]
 
@@ -376,39 +404,42 @@ class ZIonGenerator(IonGenerator):
     Generator for z type ions.
 
     """
-    def generate(self, y_masses, charge, neutral_losses=None, radical=False):
+    def generate(self, y_masses: Sequence[float], charge: int,
+                 neutral_losses: Optional[Sequence[str]] = None,
+                 radical: bool = False) -> List[Ion]:
         """
         Pass specific defaults back to base class.
 
         """
         return super().generate(y_masses, charge, neutral_losses, radical)
 
-    def base_ions(self, mass, pos):
+    def base_ions(self, mass: float, pos: int) -> List[Ion]:
         return [Ion(mass, f"z{pos + 1}[+]", pos + 1)]
 
-    def fix_mass(self, mass):
+    def fix_mass(self, mass: float) -> float:
         return mass - FIXED_MASSES["N"] - 3 * FIXED_MASSES["H"]
 
-    def radical(self, mass, pos):
+    def radical(self, mass: float, pos: int) -> List[Ion]:
         return [Ion(mass - FIXED_MASSES["H"], f"[z{pos + 1}-H][•+]", pos + 1)]
 
-    def neutral_losses(self, mass, pos, neutral_losses):
+    def neutral_losses(self, mass: float, pos: int,
+                       neutral_losses: Sequence[str]) -> List[Ion]:
         return [Ion(mass - FIXED_MASSES[nl], f"[z{pos + 1}-{nl}][+]", pos + 1)
                 for nl in neutral_losses]
-                
-                
+
+
 class IonType(enum.Enum):
     """
     An enumeration of possible fragment ion types
 
     """
-    precursor = enum.auto()
-    imm = enum.auto()
-    b = enum.auto()
-    y = enum.auto()
-    a = enum.auto()
-    c = enum.auto()
-    z = enum.auto()
+    precursor = 1
+    imm = 2
+    b = 3
+    y = 4
+    a = 5
+    c = 6
+    z = 7
 
 
 TYPE_GENERATOR_MAP = {
@@ -422,7 +453,7 @@ TYPE_GENERATOR_MAP = {
 }
 
 
-def _charge_ions(ions, charge):
+def _charge_ions(ions: List[Ion], charge: int) -> List[Ion]:
     """
     Generates the multiply charged ions from the singly charged ions provided.
 
