@@ -276,7 +276,7 @@ class Peptide():
         ions: List[Ion] = []
 
         for ion_type in ion_types:
-            generator: Type[IonGenerator] = IonGenerator.factory(ion_type)
+            generator: IonGenerator = IonGenerator.factory(ion_type)
             if ion_type == IonType.precursor:
                 ions.extend(generator(mass, self.charge, len(self.seq),
                                       self.mods, radical=self.radical,

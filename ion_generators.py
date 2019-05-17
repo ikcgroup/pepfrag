@@ -8,7 +8,7 @@ from __future__ import annotations
 import abc
 import collections
 import enum
-from typing import Any, List, Optional, Sequence, Type
+from typing import Any, Dict, List, Optional, Sequence, Type
 
 Ion = collections.namedtuple("Ion", ["mass", "label", "pos"])
 
@@ -38,7 +38,7 @@ class IonGenerator(metaclass=abc.ABCMeta):
 
     '''
     @staticmethod
-    def factory(ion_type) -> Type[IonGenerator]:
+    def factory(ion_type) -> IonGenerator:
         '''
         Constructs the relevant subclass of IonGenerator based on the
         ion_type.
@@ -48,7 +48,7 @@ class IonGenerator(metaclass=abc.ABCMeta):
                                 types.
 
         Returns:
-            IonGenerator (subclass)
+            Subclass of IonGenerator.
 
         '''
         return TYPE_GENERATOR_MAP[ion_type]()
@@ -197,7 +197,6 @@ class PrecursorIonGenerator(IonGenerator):
     def generate(self, mass: float, charge: int, seq_len: int,
                  mods: List[Any],
                  neutral_losses: Optional[List[str]] = None,
-                 itraq: bool = False,
                  radical: bool = False) -> List[Ion]:
         """
         Generates the precursor ions for the peptide.
@@ -442,7 +441,7 @@ class IonType(enum.Enum):
     z = 7
 
 
-TYPE_GENERATOR_MAP = {
+TYPE_GENERATOR_MAP: Dict[IonType, Type[IonGenerator]] = {
     IonType.precursor: PrecursorIonGenerator,
     IonType.imm: ImmoniumIonGenerator,
     IonType.b: BIonGenerator,
