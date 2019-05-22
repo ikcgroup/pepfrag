@@ -8,49 +8,15 @@ from __future__ import annotations
 
 import collections
 import enum
-from typing import Any, Dict, List, Optional, Tuple, Type
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Type
 
-from ion_generators import FIXED_MASSES, Ion, IonType, IonGenerator
+from .constants import AA_MASSES, MassType
+from .ion_generators import FIXED_MASSES, Ion, IonType, IonGenerator
 
 
 PeptideMass = collections.namedtuple("PeptideMass", ["nterm", "seq", "cterm"])
 
-
-# TODO: deduplicate with constants.py
-class MassType(enum.Enum):
-    """
-    An enumeration to represent the possible mass options.
-
-    """
-    mono = enum.auto()
-    avg = enum.auto()
-
-
-Mass = collections.namedtuple('Mass', ['mono', 'avg'])
-
-
-AA_MASSES = {
-    'G': Mass(57.02146, 57.052),
-    'A': Mass(71.03711, 71.078),
-    'S': Mass(87.03203, 87.078),
-    'P': Mass(97.05276, 97.117),
-    'V': Mass(99.06841, 99.133),
-    'T': Mass(101.04768, 101.105),
-    'C': Mass(103.00918, 103.144),
-    'I': Mass(113.08406, 113.160),
-    'L': Mass(113.08406, 113.160),
-    'N': Mass(114.04292, 114.104),
-    'D': Mass(115.02693, 115.089),
-    'Q': Mass(128.05857, 128.131),
-    'K': Mass(128.09495, 128.174),
-    'E': Mass(129.04258, 129.116),
-    'M': Mass(131.04048, 131.198),
-    'H': Mass(137.05891, 137.142),
-    'F': Mass(147.06841, 147.177),
-    'R': Mass(156.10110, 156.188),
-    'Y': Mass(163.06332, 163.170),
-    'W': Mass(186.07931, 186.213)
-}
+ModSite = collections.namedtuple("ModSite", ["mass", "site", "mod"])
 
 
 DEFAULT_IONS: Dict[IonType, Dict[str, Any]] = {
@@ -71,7 +37,7 @@ class Peptide():
     used to fragment the peptides for mass spectrum annotation.
 
     """
-    def __init__(self, sequence: str, charge: int, modifications,
+    def __init__(self, sequence: str, charge: int, modifications: Sequence[ModSite],
                  mass_type: MassType = MassType.mono,
                  radical: bool = False) -> None:
         """

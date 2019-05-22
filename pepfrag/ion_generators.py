@@ -10,18 +10,9 @@ import collections
 import enum
 from typing import Any, Dict, List, Optional, Sequence, Type
 
-Ion = collections.namedtuple("Ion", ["mass", "label", "pos"])
+from .constants import FIXED_MASSES
 
-FIXED_MASSES = {
-    "tag": 304.20536,
-    "H2O": 18.006067,
-    "H": 1.0073,
-    "CO": 28.0101,
-    "NH3": 16.998767,
-    "cys": 57.021464,
-    "N": 14.003074,
-    "CO2": 43.989830
-}
+Ion = collections.namedtuple("Ion", ["mass", "label", "pos"])
 
 
 # IonGenerator is the base class for all ion generators. It provides a factory
