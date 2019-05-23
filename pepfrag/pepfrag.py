@@ -71,7 +71,7 @@ class Peptide():
         Sets the sequence and clears the fragment_ions.
 
         """
-        self._clean_fragment_ions()
+        self.clean_fragment_ions()
         self.__seq = seq
         
     @property
@@ -88,7 +88,7 @@ class Peptide():
         Sets the charge and clears the fragment_ions.
 
         """
-        self._clean_fragment_ions()
+        self.clean_fragment_ions()
         self.__charge = charge
         
     @property
@@ -105,7 +105,7 @@ class Peptide():
         Sets the modifications and clears the fragment_ions.
 
         """
-        self._clean_fragment_ions()
+        self.clean_fragment_ions()
         self.__mods = mods
 
     @property
@@ -173,7 +173,7 @@ class Peptide():
         return (self.seq, self.charge, self.mods) == \
                (other.seq, other.charge, other.mods)
                
-    def _clean_fragment_ions(self):
+    def clean_fragment_ions(self):
         """
         Cleans the cached fragment ions.
 
