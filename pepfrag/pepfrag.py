@@ -7,8 +7,7 @@ generate theoretical ions useful for annotating mass spectra (MSn).
 from __future__ import annotations
 
 import collections
-import enum
-from typing import Any, Dict, List, Optional, Sequence, Tuple, Type
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from .constants import AA_MASSES, MassType
 from .ion_generators import FIXED_MASSES, Ion, IonType, IonGenerator
@@ -37,7 +36,8 @@ class Peptide():
     used to fragment the peptides for mass spectrum annotation.
 
     """
-    def __init__(self, sequence: str, charge: int, modifications: Sequence[ModSite],
+    def __init__(self, sequence: str, charge: int,
+                 modifications: Sequence[ModSite],
                  mass_type: MassType = MassType.mono,
                  radical: bool = False) -> None:
         """
@@ -56,7 +56,7 @@ class Peptide():
         self.radical = radical
 
         self.fragment_ions: Optional[List[Ion]] = None
-        
+
     @property
     def seq(self) -> str:
         """
@@ -64,7 +64,7 @@ class Peptide():
 
         """
         return self.__seq
-        
+
     @seq.setter
     def seq(self, seq: str):
         """
@@ -73,7 +73,7 @@ class Peptide():
         """
         self.clean_fragment_ions()
         self.__seq = seq
-        
+
     @property
     def charge(self) -> int:
         """
@@ -81,7 +81,7 @@ class Peptide():
 
         """
         return self.__charge
-        
+
     @charge.setter
     def charge(self, charge: int):
         """
@@ -90,7 +90,7 @@ class Peptide():
         """
         self.clean_fragment_ions()
         self.__charge = charge
-        
+
     @property
     def mods(self) -> List:
         """
@@ -98,7 +98,7 @@ class Peptide():
 
         """
         return self.__mods
-        
+
     @mods.setter
     def mods(self, mods: List):
         """
@@ -172,7 +172,7 @@ class Peptide():
             raise NotImplementedError()
         return (self.seq, self.charge, self.mods) == \
                (other.seq, other.charge, other.mods)
-               
+
     def clean_fragment_ions(self):
         """
         Cleans the cached fragment ions.
