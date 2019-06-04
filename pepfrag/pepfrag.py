@@ -36,6 +36,10 @@ class Peptide():
     used to fragment the peptides for mass spectrum annotation.
 
     """
+
+    __slots__ = ("__seq", "__charge", "__mods", "mass_type", "radical",
+                 "fragment_ions",)
+
     def __init__(self, sequence: str, charge: int,
                  modifications: Sequence[ModSite],
                  mass_type: MassType = MassType.mono,
