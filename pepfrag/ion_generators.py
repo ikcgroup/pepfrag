@@ -8,7 +8,8 @@ from __future__ import annotations
 import abc
 import collections
 import enum
-from typing import Any, Dict, List, Optional, Sequence, Type
+import functools
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Type
 
 from .constants import FIXED_MASSES
 
@@ -42,7 +43,7 @@ class IonGenerator(metaclass=abc.ABCMeta):
             Subclass of IonGenerator.
 
         '''
-        return TYPE_GENERATOR_MAP[ion_type]()
+        return TYPE_GENERATOR_MAP[ion_type]
 
     def __call__(self, *args, **kwargs) -> List[Ion]:
         '''
@@ -101,7 +102,7 @@ class IonGenerator(metaclass=abc.ABCMeta):
 
         all_ions = list(ions)
         for _charge in range(1, charge):
-            all_ions.extend(_charge_ions(ions, _charge + 1))
+            all_ions.extend(_charge_ions(tuple(ions), _charge + 1))
 
         return all_ions
 
@@ -432,18 +433,19 @@ class IonType(enum.Enum):
     z = 7
 
 
-TYPE_GENERATOR_MAP: Dict[IonType, Type[IonGenerator]] = {
-    IonType.precursor: PrecursorIonGenerator,
-    IonType.imm: ImmoniumIonGenerator,
-    IonType.b: BIonGenerator,
-    IonType.y: YIonGenerator,
-    IonType.a: AIonGenerator,
-    IonType.c: CIonGenerator,
-    IonType.z: ZIonGenerator
+TYPE_GENERATOR_MAP: Dict[IonType, IonGenerator] = {
+    IonType.precursor: PrecursorIonGenerator(),
+    IonType.imm: ImmoniumIonGenerator(),
+    IonType.b: BIonGenerator(),
+    IonType.y: YIonGenerator(),
+    IonType.a: AIonGenerator(),
+    IonType.c: CIonGenerator(),
+    IonType.z: ZIonGenerator()
 }
 
 
-def _charge_ions(ions: List[Ion], charge: int) -> List[Ion]:
+@functools.lru_cache()
+def _charge_ions(ions: Tuple[Ion, ...], charge: int) -> List[Ion]:
     """
     Generates the multiply charged ions from the singly charged ions provided.
 
