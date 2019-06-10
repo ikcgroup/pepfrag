@@ -221,12 +221,10 @@ class Peptide():
             ion_types (dict):
 
         """
-        if self.fragment_ions is not None and not force:
-            # Use the cached ions
-            return self.fragment_ions
-
-        # Cache the ions
-        self.fragment_ions = self._fragment(ion_types)
+        # If fragment_ions already exists or force=False, use the cached ions
+        if self.fragment_ions is None or force:
+            # Cache the new ions
+            self.fragment_ions = self._fragment(ion_types)
 
         return self.fragment_ions
 
