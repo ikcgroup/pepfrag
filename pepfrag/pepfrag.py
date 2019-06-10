@@ -37,7 +37,7 @@ class Peptide():
 
     """
 
-    __slots__ = ("__seq", "__charge", "__mods", "mass_type", "radical",
+    __slots__ = ("_seq", "_charge", "_mods", "mass_type", "radical",
                  "fragment_ions",)
 
     def __init__(self, sequence: str, charge: int,
@@ -67,7 +67,7 @@ class Peptide():
         Returns the peptide sequence.
 
         """
-        return self.__seq
+        return self._seq
 
     @seq.setter
     def seq(self, seq: str):
@@ -76,7 +76,7 @@ class Peptide():
 
         """
         self.clean_fragment_ions()
-        self.__seq = seq
+        self._seq = seq
 
     @property
     def charge(self) -> int:
@@ -84,7 +84,7 @@ class Peptide():
         Returns the peptide charge.
 
         """
-        return self.__charge
+        return self._charge
 
     @charge.setter
     def charge(self, charge: int):
@@ -93,7 +93,7 @@ class Peptide():
 
         """
         self.clean_fragment_ions()
-        self.__charge = charge
+        self._charge = charge
 
     @property
     def mods(self) -> List:
@@ -101,7 +101,7 @@ class Peptide():
         Returns the list of ModSites.
 
         """
-        return self.__mods
+        return self._mods
 
     @mods.setter
     def mods(self, mods: List):
@@ -110,7 +110,7 @@ class Peptide():
 
         """
         self.clean_fragment_ions()
-        self.__mods = mods
+        self._mods = mods
 
     @property
     def peptide_mass(self) -> PeptideMass:
@@ -140,7 +140,8 @@ class Peptide():
             string: Official representation of the Peptide object.
 
         """
-        return f"<{self.__class__.__name__} {self.__dict__}>"
+        out = {s: getattr(self, s) for s in __class__.__slots__}
+        return f"<{self.__class__.__name__} {out}>"
 
     def __str__(self) -> str:
         """
