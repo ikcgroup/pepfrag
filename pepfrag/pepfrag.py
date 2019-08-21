@@ -29,6 +29,14 @@ DEFAULT_IONS: Dict[IonType, Dict[str, Any]] = {
 }
 
 
+class UnknownModificationSite(Exception):
+    """
+    An exception to represent the detection of an unknown/uninterpretable
+    modification site.
+
+    """
+
+
 class Peptide():
     """
     A class to represent a peptide, including its charge state and any
@@ -140,7 +148,7 @@ class Peptide():
             string: Official representation of the Peptide object.
 
         """
-        out = {s: getattr(self, s) for s in __class__.__slots__}
+        out = {s: getattr(self, s) for s in self.__class__.__slots__}
         return f"<{self.__class__.__name__} {out}>"
 
     def __str__(self) -> str:
@@ -193,6 +201,9 @@ class Peptide():
         Returns:
             PeptideMass
 
+        Raises:
+            UnknownModificationSite
+
         """
         nterm_mass, cterm_mass = None, None
         # Initialize added modification masses for each sequence position
@@ -201,10 +212,14 @@ class Peptide():
         for mod in self.mods:
             if isinstance(mod.site, int):
                 site_mod_masses[mod.site - 1] += mod.mass
-            elif mod.site == "cterm":
-                cterm_mass = mod.mass
             else:
-                nterm_mass = mod.mass
+                site = mod.site.lower().replace("-", "")
+                if site == "cterm":
+                    cterm_mass = mod.mass
+                elif site == "nterm":
+                    nterm_mass = mod.mass
+                else:
+                    raise UnknownModificationSite()
 
         seq_masses = [getattr(AA_MASSES[aa], self.mass_type.name) +
                       site_mod_masses[ii] for ii, aa in enumerate(self.seq)]
