@@ -459,6 +459,9 @@ def _charge_ions(ions: Tuple[Ion, ...], charge: int) -> List[Ion]:
     """
     # Empirical position-charge rule to exclude fragment ion charge states
     # which aren't sensible
-    return [Ion((ion.mass + (charge - 1) * FIXED_MASSES["H"]) / float(charge),
-                ion.label.replace("+", f"{charge}+"), ion.pos)
-            for ion in ions if ion.pos >= 2 * charge - 1]
+    h_mass = FIXED_MASSES["H"] * (charge - 1)
+    f_charge = float(charge)
+    min_pos = 2 * charge - 1
+    return [Ion((mass + h_mass) / f_charge,
+                label.replace("+", f"{charge}+"), pos)
+            for (mass, label, pos) in ions if pos >= min_pos]
