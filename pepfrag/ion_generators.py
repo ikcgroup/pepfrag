@@ -92,12 +92,14 @@ class IonGenerator(metaclass=abc.ABCMeta):
         for pos, mass in enumerate(masses):
             ion_mass = self.fix_mass(mass)
 
-            ions.extend(self.base_ions(ion_mass, pos))
+            base_ion = self.base_ion(ion_mass, pos)
+            if base_ion is not None:
+                ions.append(base_ion)
 
             if radical:
                 ions.extend(self.radical(ion_mass, pos))
 
-            if neutral_losses is not None:
+            if neutral_losses:  # is not None:
                 ions.extend(self.neutral_losses(ion_mass, pos, neutral_losses))
 
         all_ions = list(ions)
@@ -107,7 +109,7 @@ class IonGenerator(metaclass=abc.ABCMeta):
         return all_ions
 
     @abc.abstractmethod
-    def base_ions(self, mass: float, pos: int) -> List[Ion]:
+    def base_ion(self, mass: float, pos: int) -> List[Ion]:
         '''
         Generates the basic fragment ion(s) for the type. For example, b1[+]
         and y[1]+.
@@ -230,8 +232,8 @@ class PrecursorIonGenerator(IonGenerator):
 
         return ions
 
-    def base_ions(self, mass: float, pos: int) -> List[Ion]:
-        return []
+    def base_ion(self, mass: float, pos: int) -> List[Ion]:
+        return None
 
 
 class ImmoniumIonGenerator(IonGenerator):
@@ -256,10 +258,10 @@ class ImmoniumIonGenerator(IonGenerator):
 
         return super().generate(seq_masses, charge, neutral_losses, radical)
 
-    def base_ions(self, mass: float, pos: int) -> List[Ion]:
-        return [Ion(mass,
-                    f"imm({self.sequence[pos]}"
-                    f"{'*' if pos in self.mod_sites else ''})", 0)]
+    def base_ion(self, mass: float, pos: int) -> List[Ion]:
+        return Ion(mass,
+                   f"imm({self.sequence[pos]}"
+                   f"{'*' if pos in self.mod_sites else ''})", 0)
 
     def fix_mass(self, mass: float) -> float:
         return mass - FIXED_MASSES["CO"] + FIXED_MASSES["H"]
@@ -281,8 +283,8 @@ class BIonGenerator(IonGenerator):
             neutral_losses = ["H2O", "NH3", "CO"]
         return super().generate(b_masses[:-1], charge, neutral_losses, radical)
 
-    def base_ions(self, mass: float, pos: int) -> List[Ion]:
-        return [Ion(mass, f"b{pos + 1}[+]", pos + 1)]
+    def base_ion(self, mass: float, pos: int) -> List[Ion]:
+        return Ion(mass, f"b{pos + 1}[+]", pos + 1)
 
     def fix_mass(self, mass: float) -> float:
         return mass + FIXED_MASSES["H"]
@@ -312,8 +314,8 @@ class YIonGenerator(IonGenerator):
             neutral_losses = ["NH3", "H2O"]
         return super().generate(y_masses[:-1], charge, neutral_losses, radical)
 
-    def base_ions(self, mass: float, pos: int) -> List[Ion]:
-        return [Ion(mass, f"y{pos + 1}[+]", pos + 1)]
+    def base_ion(self, mass: float, pos: int) -> List[Ion]:
+        return Ion(mass, f"y{pos + 1}[+]", pos + 1)
 
     def fix_mass(self, mass: float) -> float:
         return mass + FIXED_MASSES["H"]
@@ -342,8 +344,8 @@ class AIonGenerator(IonGenerator):
         """
         return super().generate(b_masses[:-1], charge, neutral_losses, radical)
 
-    def base_ions(self, mass: float, pos: int) -> List[Ion]:
-        return [Ion(mass, f"a{pos + 1}[+]", pos + 1)]
+    def base_ion(self, mass: float, pos: int) -> List[Ion]:
+        return Ion(mass, f"a{pos + 1}[+]", pos + 1)
 
     def fix_mass(self, mass: float) -> float:
         return mass + FIXED_MASSES["H"] - FIXED_MASSES["CO"]
@@ -374,8 +376,8 @@ class CIonGenerator(IonGenerator):
         # since the c{seq_len} ion is not a sensible annotation
         return super().generate(b_masses[:-1], charge, neutral_losses, radical)
 
-    def base_ions(self, mass: float, pos: int) -> List[Ion]:
-        return [Ion(mass, f"c{pos + 1}[+]", pos + 1)]
+    def base_ion(self, mass: float, pos: int) -> List[Ion]:
+        return Ion(mass, f"c{pos + 1}[+]", pos + 1)
 
     def fix_mass(self, mass: float) -> float:
         return mass + FIXED_MASSES["N"] + 3 * FIXED_MASSES["H"]
@@ -404,8 +406,8 @@ class ZIonGenerator(IonGenerator):
         """
         return super().generate(y_masses, charge, neutral_losses, radical)
 
-    def base_ions(self, mass: float, pos: int) -> List[Ion]:
-        return [Ion(mass, f"z{pos + 1}[+]", pos + 1)]
+    def base_ion(self, mass: float, pos: int) -> List[Ion]:
+        return Ion(mass, f"z{pos + 1}[+]", pos + 1)
 
     def fix_mass(self, mass: float) -> float:
         return mass - FIXED_MASSES["N"] - 3 * FIXED_MASSES["H"]

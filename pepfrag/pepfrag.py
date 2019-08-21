@@ -7,6 +7,7 @@ generate theoretical ions useful for annotating mass spectra (MSn).
 from __future__ import annotations
 
 import collections
+import functools
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from .constants import AA_MASSES, MassType
@@ -26,6 +27,13 @@ DEFAULT_IONS: Dict[IonType, Dict[str, Any]] = {
     IonType.a: {},
     IonType.c: {},
     IonType.z: {}
+}
+
+
+AA_TYPE_MASSES = {
+    (mass_type, aa): getattr(AA_MASSES[aa], mass_type.name)
+    for aa in AA_MASSES.keys()
+    for mass_type in [MassType.mono, MassType.avg]
 }
 
 
@@ -121,6 +129,7 @@ class Peptide():
         self._mods = mods
 
     @property
+    @functools.lru_cache(maxsize=None)
     def peptide_mass(self) -> PeptideMass:
         """
         Returns the mass of the peptide, including modifications.
@@ -174,7 +183,7 @@ class Peptide():
         Implements the hash function for the Peptide object.
 
         """
-        return hash((self.seq, self.charge))
+        return hash((self.seq, self.charge, tuple(self.mods)))
 
     def __eq__(self, other: object) -> bool:
         """
@@ -221,7 +230,7 @@ class Peptide():
                 else:
                     raise UnknownModificationSite()
 
-        seq_masses = [getattr(AA_MASSES[aa], self.mass_type.name) +
+        seq_masses = [AA_TYPE_MASSES[(self.mass_type, aa)] +
                       site_mod_masses[ii] for ii, aa in enumerate(self.seq)]
 
         return PeptideMass(nterm_mass, seq_masses, cterm_mass)
@@ -298,16 +307,16 @@ class Peptide():
 
         pep_mass = self.peptide_mass
 
-        # The base mass for y-type ions
         y_base = (FIXED_MASSES["H2O"] if pep_mass.cterm is None
                   else pep_mass.cterm)
-        rev_seq_masses = pep_mass.seq[::-1]
-        y_ions = [y_base + sum(rev_seq_masses[:ii])
-                  for ii in range(1, seq_len + 1)]
-
-        # The base mass for b-type ions
         b_base = 0. if pep_mass.nterm is None else pep_mass.nterm
-        b_ions = [b_base + sum(pep_mass.seq[:ii])
-                  for ii in range(1, seq_len + 1)]
+        rev_seq_masses = pep_mass.seq[::-1]
+        y_ions = []
+        b_ions = []
+        for ii in range(0, seq_len):
+            y_base += rev_seq_masses[ii]
+            y_ions.append(y_base)
+            b_base += pep_mass.seq[ii]
+            b_ions.append(b_base)
 
         return b_ions, y_ions
