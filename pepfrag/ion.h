@@ -4,7 +4,7 @@
 #include <Python.h>
 #include <string>
 
-enum IonType {
+enum class IonType {
 	precursor = 1,
 	immonium = 2,
 	b = 3,
