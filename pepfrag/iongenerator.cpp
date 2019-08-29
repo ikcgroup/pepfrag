@@ -48,7 +48,7 @@ std::vector<Ion> IonGenerator::generate(
 	std::vector<Ion> ions;
 	ions.reserve(masses.size() * 10);
 	
-	for (int ii = 0; ii < masses.size(); ii++) {
+	for (int ii = 0; ii < (int) masses.size(); ii++) {
 		double ion_mass = fixMass(masses[ii]);
 		
 		ions.push_back(generateBaseIon(ion_mass, ii, sequence));

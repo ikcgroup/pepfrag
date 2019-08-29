@@ -78,7 +78,7 @@ std::map<IonType, std::vector<std::string>> dictToIonTypeMap(PyObject* source) {
 PyObject* ionVectorToList(const std::vector<Ion>& ions) {
 	PyObject* listObj = PyList_New(ions.size());
 
-	for (int ii = 0; ii < ions.size(); ii++) {
+	for (int ii = 0; ii < (int) ions.size(); ii++) {
 		PyList_SetItem(listObj, ii, (PyObject*) ions[ii]);
 	}
 	
