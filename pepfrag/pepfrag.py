@@ -7,26 +7,44 @@ generate theoretical ions useful for annotating mass spectra (MSn).
 from __future__ import annotations
 
 import collections
+import enum
 import functools
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
-from .constants import AA_MASSES, MassType
-from .ion_generators import FIXED_MASSES, Ion, IonType, IonGenerator
+from cpepfrag import generate_ions
 
+from .constants import AA_MASSES, FIXED_MASSES, MassType
+
+
+Ion = collections.namedtuple("Ion", ["mass", "label", "pos"])
 
 PeptideMass = collections.namedtuple("PeptideMass", ["nterm", "seq", "cterm"])
 
 ModSite = collections.namedtuple("ModSite", ["mass", "site", "mod"])
 
 
-DEFAULT_IONS: Dict[IonType, Dict[str, Any]] = {
-    IonType.precursor: {},
-    IonType.imm: {},
-    IonType.b: {},
-    IonType.y: {},
-    IonType.a: {},
-    IonType.c: {},
-    IonType.z: {}
+class IonType(enum.Enum):
+    """
+    An enumeration of possible fragment ion types
+
+    """
+    precursor = 1
+    imm = 2
+    b = 3
+    y = 4
+    a = 5
+    c = 6
+    z = 7
+
+
+DEFAULT_IONS: Dict[IonType, List[str]] = {
+    IonType.precursor: ["H2O", "NH3", "CO2"],
+    IonType.imm: [],
+    IonType.b: ["H2O", "NH3", "CO"],
+    IonType.y: ["NH3", "H2O"],
+    IonType.a: [],
+    IonType.c: [],
+    IonType.z: []
 }
 
 
@@ -253,7 +271,7 @@ class Peptide():
         return self.fragment_ions
 
     def _fragment(self,
-                  ion_types: Dict[IonType, Dict[str, Any]]) -> List[Ion]:
+                  ion_types: Dict[IonType, List[str]]) -> List[Ion]:
         """
         Fragments the peptide to generate the ion types specified.
 
@@ -261,38 +279,17 @@ class Peptide():
             ion_types (dict):
 
         """
-        mass = self.mass
-        pep_mass = self.peptide_mass
-
         b_masses, y_masses = self._ion_masses()
 
-        ions: List[Ion] = []
-
-        for ion_type in ion_types:
-            generator: IonGenerator = IonGenerator.factory(ion_type)
-            if ion_type == IonType.precursor:
-                ions.extend(generator(mass, self.charge, len(self.seq),
-                                      self.mods, radical=self.radical,
-                                      **ion_types[ion_type]))
-            elif ion_type == IonType.imm:
-                ions.extend(generator(pep_mass.seq, self.charge, self.seq,
-                                      self.mods, **ion_types[ion_type]))
-            else:
-                masses = None
-                if ion_type in [IonType.b, IonType.a, IonType.c]:
-                    masses = b_masses
-                elif ion_type in [IonType.y, IonType.z]:
-                    masses = y_masses
-
-                if masses is None:
-                    raise RuntimeError(
-                        f"Invalid IonType {ion_type} specified")
-
-                ions.extend(
-                    generator(masses, self.charge, radical=self.radical,
-                              **ion_types[ion_type]))
-
-        return ions
+        return generate_ions(
+            {t.value: nl for t, nl in ion_types.items()},
+            self.mass,
+            self.peptide_mass.seq,
+            b_masses,
+            y_masses,
+            self.charge,
+            self.radical,
+            self.seq)
 
     def _ion_masses(self) -> Tuple[List[float], List[float]]:
         """
