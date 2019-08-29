@@ -1,15 +1,15 @@
 #ifndef _PEPFRAG_IONGENERATOR_H
 #define _PEPFRAG_IONGENERATOR_H
 
-#include <map>
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "ion.h"
 
-const std::map<std::string, double> FIXED_MASSES = {
+const std::unordered_map<std::string, double> FIXED_MASSES = {
 	{"H", 1.007276466879},
 	{"tag", 304.20536},
 	{"H2O", 18.01056468403},
