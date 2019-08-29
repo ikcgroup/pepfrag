@@ -2,8 +2,8 @@
 #define _PEPFRAG_CONVERTERS_H
 
 #include <Python.h>
-#include <map>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "ion.h"
@@ -12,7 +12,7 @@ std::vector<double> listToDoubleVector(PyObject* source);
 
 std::vector<std::string> listToStringVector(PyObject* source);
 
-std::map<IonType, std::vector<std::string>> dictToIonTypeMap(PyObject* source);
+std::unordered_map<IonType, std::vector<std::string>> dictToIonTypeMap(PyObject* source);
 
 PyObject* ionVectorToList(const std::vector<Ion>& ions);
 

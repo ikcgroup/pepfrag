@@ -1,5 +1,6 @@
 #include <Python.h>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "cpepfrag.h"
@@ -32,7 +33,7 @@ PyObject* python_generateIons(PyObject* module, PyObject* args) {
 		PyErr_SetString(PyExc_RuntimeError, ex.what());
 	}
 	
-	std::map<IonType, std::vector<std::string>> ionConfigs = dictToIonTypeMap(ionTypes);
+	std::unordered_map<IonType, std::vector<std::string>> ionConfigs = dictToIonTypeMap(ionTypes);
 	
 	long charge = PyLong_AsLong(pyCharge);
 	bool radical = PyObject_IsTrue(pyRadical);

@@ -6,7 +6,7 @@ PACKAGE_DIR = "pepfrag"
 
 extra_compiler_args = []
 if sys.platform == "darwin":
-    extra_compiler_args.append("-std=c++11")
+    extra_compiler_args.append("-std=c++14")
 
 
 cpepfrag = Extension(
