@@ -41,6 +41,8 @@ class IonGenerator {
 	
 	public:
 		IonGenerator(const std::string& label);
+
+		virtual ~IonGenerator() = 0;
 		
 		static IonGeneratorPtr create(IonType type);
 	
@@ -76,6 +78,8 @@ class BIonGenerator : public IonGenerator
 {
 	public:
 		BIonGenerator();
+
+		~BIonGenerator() override {};
 		
 	private:
 		std::vector<Ion> generateRadicalIons(
@@ -89,6 +93,8 @@ class YIonGenerator : public IonGenerator
 {
 	public:
 		YIonGenerator();
+
+		~YIonGenerator() override {};
 		
 	private:
 		std::vector<Ion> generateRadicalIons(
@@ -102,6 +108,8 @@ class AIonGenerator : public IonGenerator
 {
 	public:
 		AIonGenerator();
+
+		~AIonGenerator() override {};
 		
 	private:
 		std::vector<Ion> generateRadicalIons(
@@ -115,6 +123,8 @@ class CIonGenerator : public IonGenerator
 {
 	public:
 		CIonGenerator();
+
+		~CIonGenerator() override {};
 		
 	private:
 		std::vector<Ion> generateRadicalIons(
@@ -128,6 +138,8 @@ class ZIonGenerator : public IonGenerator
 {
 	public:
 		ZIonGenerator();
+
+		~ZIonGenerator() override {};
 		
 	private:
 		std::vector<Ion> generateRadicalIons(
@@ -141,6 +153,8 @@ class ImmoniumIonGenerator : public IonGenerator
 {
 	public:
 		ImmoniumIonGenerator();
+
+		~ImmoniumIonGenerator() override {};
 		
 	private:
 		std::vector<double> preProcessMasses(
@@ -158,6 +172,8 @@ class PrecursorIonGenerator : public IonGenerator
 {
 	public:
 		PrecursorIonGenerator();
+
+		~PrecursorIonGenerator() override {};
 		
 		std::vector<Ion> generate(
 			const std::vector<double>& masses,
@@ -185,7 +201,6 @@ class PrecursorIonGenerator : public IonGenerator
 			const std::vector<std::string>& neutralLosses) const override;
 			
 		double fixMass(double mass) const override;
-		
 };
 
 std::vector<Ion> chargeIons(const std::vector<Ion>& ions, long chargeState);
