@@ -42,7 +42,7 @@ class IonGenerator {
 	public:
 		IonGenerator(const std::string& label);
 
-		virtual ~IonGenerator() = 0;
+		virtual ~IonGenerator() {};
 		
 		static IonGeneratorPtr create(IonType type);
 	
