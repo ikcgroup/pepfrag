@@ -73,7 +73,52 @@ std::unordered_map<IonType, std::vector<std::string>> dictToIonTypeMap(PyObject*
 	return types;
 }
 
+std::vector<ModMassSite> modSiteListToVector(PyObject* source, size_t seqLen) {
+	if (!PyList_Check(source)) {
+		throw std::logic_error("PyObject pointer was not a list");
+	}
+
+	Py_ssize_t size = PyList_Size(source);
+
+	std::vector<ModMassSite> modSites;
+	modSites.reserve(size);
+
+	for (Py_ssize_t ii = 0; ii < size; ii++) {
+		PyObject* tuple = PyList_GetItem(source, ii);
+		PyObject* site = PyTuple_GetItem(tuple, 1);
+
+		long siteIdx;
+		if (PyLong_Check(site)) {
+			siteIdx = PyLong_AsLong(site);
+		}
+		else {
+			std::string siteStr = PyUnicode_AsUTF8(site);
+			siteIdx = (siteStr == "N-term" || siteStr == "nterm") ? 0 : seqLen + 1;
+		}
+
+		modSites.emplace_back(
+			siteIdx,
+			PyFloat_AsDouble(PyTuple_GetItem(tuple, 0))
+		);
+	}
+
+	return modSites;
+}
+
 /* C++ to Python */
+
+template<class T>
+PyObject* vectorToList(const std::vector<T>& data, PyObject*(*convert)(T)) {
+	PyObject* listObj = PyList_New(data.size());
+	for (size_t ii = 0; ii < data.size(); ii++) {
+		PyList_SetItem(listObj, ii, convert(data[ii]));
+	}
+	return listObj;
+}
+
+PyObject* doubleVectorToList(const std::vector<double>& data) {
+	return vectorToList<double>(data, &PyFloat_FromDouble);
+}
 
 PyObject* ionVectorToList(const std::vector<Ion>& ions) {
 	PyObject* listObj = PyList_New(ions.size());

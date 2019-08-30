@@ -7,6 +7,7 @@
 #include "converters.h"
 #include "iongenerator.h"
 #include "ion.h"
+#include "mass.h"
 
 std::vector<Ion> generateIons(
 	IonType type,
@@ -73,10 +74,25 @@ PyObject* python_generateIons(PyObject* module, PyObject* args) {
 	return ionVectorToList(ions);
 }
 
+PyObject* python_calculateMass(PyObject* module, PyObject* args) {
+	PyObject* sequence = NULL;
+	PyObject* modSites = NULL;
+
+	if (!PyArg_UnpackTuple(args, "cpython_calculateMass", 2, 2, &sequence, &modSites)) return NULL;
+
+	std::string seq = PyUnicode_AsUTF8(sequence);
+
+	return doubleVectorToList(calculateMass(
+		seq,
+		modSiteListToVector(modSites, seq.size())
+	));
+};
+
 // Boilerplate code for C++ extension
 
 static PyMethodDef cpepfrag_methods[] = {
 	{"generate_ions", python_generateIons, METH_VARARGS, "Fragment ion generation."},
+	{"calculate_mass", python_calculateMass, METH_VARARGS, "Peptide mass calculation"},
 	{NULL, NULL, 0, NULL} /* SENTINEL */
 };
 

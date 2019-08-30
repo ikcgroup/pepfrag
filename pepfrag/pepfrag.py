@@ -11,7 +11,7 @@ import enum
 import functools
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
-from cpepfrag import generate_ions
+from cpepfrag import calculate_mass, generate_ions
 
 from .constants import AA_MASSES, FIXED_MASSES, MassType
 
@@ -228,30 +228,8 @@ class Peptide():
         Returns:
             PeptideMass
 
-        Raises:
-            UnknownModificationSite
-
         """
-        nterm_mass, cterm_mass = None, None
-        # Initialize added modification masses for each sequence position
-        site_mod_masses = [0.] * len(self.seq)
-
-        for mod in self.mods:
-            if isinstance(mod.site, int):
-                site_mod_masses[mod.site - 1] += mod.mass
-            else:
-                site = mod.site.lower().replace("-", "")
-                if site == "cterm":
-                    cterm_mass = mod.mass
-                elif site == "nterm":
-                    nterm_mass = mod.mass
-                else:
-                    raise UnknownModificationSite()
-
-        seq_masses = [AA_TYPE_MASSES[(self.mass_type, aa)] +
-                      site_mod_masses[ii] for ii, aa in enumerate(self.seq)]
-
-        return PeptideMass(nterm_mass, seq_masses, cterm_mass)
+        return calculate_mass(self.seq, self.mods)
 
     def fragment(self,
                  ion_types: Dict[IonType, Dict[str, Any]] = DEFAULT_IONS,
@@ -304,16 +282,16 @@ class Peptide():
 
         pep_mass = self.peptide_mass
 
-        y_base = (FIXED_MASSES["H2O"] if pep_mass.cterm is None
-                  else pep_mass.cterm)
-        b_base = 0. if pep_mass.nterm is None else pep_mass.nterm
-        rev_seq_masses = pep_mass.seq[::-1]
+        y_base = FIXED_MASSES["H2O"] if pep_mass[-1] == 0. else pep_mass[-1]
+        b_base = pep_mass[0]
+        # Reverse the sequence portion of the list (i.e. pep_mass[1:-1])
+        rev_seq_masses = pep_mass[-2:0:-1]
         y_ions = []
         b_ions = []
-        for ii in range(0, seq_len):
+        for ii in range(seq_len):
             y_base += rev_seq_masses[ii]
             y_ions.append(y_base)
-            b_base += pep_mass.seq[ii]
+            b_base += pep_mass[ii + 1]
             b_ions.append(b_base)
 
         return b_ions, y_ions

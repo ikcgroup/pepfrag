@@ -14,6 +14,7 @@ cpepfrag = Extension(
     sources=[
         os.path.join(PACKAGE_DIR, "iongenerator.cpp"),
         os.path.join(PACKAGE_DIR, "converters.cpp"),
+        os.path.join(PACKAGE_DIR, "mass.cpp"),
         os.path.join(PACKAGE_DIR, "cpepfrag.cpp"),
     ],
     language="c++11",
