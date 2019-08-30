@@ -29,7 +29,7 @@ template<class T>
 std::vector<T> listToVector(PyObject* source, bool(*check)(PyObject*), T(*convert)(PyObject*)) {
 	std::vector<T> data;
 	if (PyList_Check(source)) {
-		long size = PyList_Size(source);
+		long size = (long) PyList_Size(source);
 		data.reserve(size);
 		for (Py_ssize_t ii = 0; ii < size; ii++) {
 			PyObject* value = PyList_GetItem(source, ii);
