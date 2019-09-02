@@ -40,13 +40,13 @@ class IonGenerator {
 		const std::string ionLabel;
 	
 	public:
-		IonGenerator(const std::string& label);
+		explicit IonGenerator(const std::string& label);
 
 		virtual ~IonGenerator() {};
 		
 		static IonGeneratorPtr create(IonType type);
 	
-		virtual std::vector<Ion> generate(
+		virtual Ions generate(
 			const std::vector<double>& masses,
 			long charge,
 			const std::vector<std::string>& neutralLosses,
@@ -62,11 +62,13 @@ class IonGenerator {
 			long position,
 			const std::string& sequence) const;
 			
-		virtual std::vector<Ion> generateRadicalIons(
+		virtual void generateRadicalIons(
+			Ions& ions,
 			double mass,
 			long position) const;
 			
-		virtual std::vector<Ion> generateNeutralLosses(
+		virtual void generateNeutralLosses(
+			Ions& ions,
 			double mass,
 			long position,
 			const std::vector<std::string>& neutralLosses) const;
@@ -82,7 +84,8 @@ class BIonGenerator : public IonGenerator
 		~BIonGenerator() override {};
 		
 	private:
-		std::vector<Ion> generateRadicalIons(
+		void generateRadicalIons(
+			Ions& ions,
 			double mass,
 			long position) const override;
 			
@@ -97,9 +100,6 @@ class YIonGenerator : public IonGenerator
 		~YIonGenerator() override {};
 		
 	private:
-		std::vector<Ion> generateRadicalIons(
-			double mass,
-			long position) const override;
 			
 		double fixMass(double mass) const override;
 };
@@ -112,7 +112,8 @@ class AIonGenerator : public IonGenerator
 		~AIonGenerator() override {};
 		
 	private:
-		std::vector<Ion> generateRadicalIons(
+		void generateRadicalIons(
+			Ions& ions,
 			double mass,
 			long position) const override;
 			
@@ -127,7 +128,8 @@ class CIonGenerator : public IonGenerator
 		~CIonGenerator() override {};
 		
 	private:
-		std::vector<Ion> generateRadicalIons(
+		void generateRadicalIons(
+			Ions& ions,
 			double mass,
 			long position) const override;
 			
@@ -142,7 +144,8 @@ class ZIonGenerator : public IonGenerator
 		~ZIonGenerator() override {};
 		
 	private:
-		std::vector<Ion> generateRadicalIons(
+		void generateRadicalIons(
+			Ions& ions,
 			double mass,
 			long position) const override;
 			
@@ -175,7 +178,7 @@ class PrecursorIonGenerator : public IonGenerator
 
 		~PrecursorIonGenerator() override {};
 		
-		std::vector<Ion> generate(
+		Ions generate(
 			const std::vector<double>& masses,
 			long charge,
 			const std::vector<std::string>& neutralLosses,
@@ -191,11 +194,13 @@ class PrecursorIonGenerator : public IonGenerator
 			long position,
 			const std::string& sequence) const override;
 			
-		std::vector<Ion> generateRadicalIons(
+		void generateRadicalIons(
+			Ions& ions,
 			double mass,
 			long position) const override;
 			
-		std::vector<Ion> generateNeutralLosses(
+		void generateNeutralLosses(
+			Ions& ions,
 			double mass,
 			long position,
 			const std::vector<std::string>& neutralLosses) const override;
@@ -203,7 +208,7 @@ class PrecursorIonGenerator : public IonGenerator
 		double fixMass(double mass) const override;
 };
 
-std::vector<Ion> chargeIons(const std::vector<Ion>& ions, long chargeState);
+void chargeIons(const Ions& sourceIons, Ions& target, long chargeState);
 
 inline Ion generateNeutralLossIon(
 	const std::string& typeChar,
@@ -218,6 +223,6 @@ inline Ion generateNeutralLossIon(
 	};
 }
 
-void mergeIonVectors(std::vector<Ion>& target, const std::vector<Ion>& source);
+void mergeIonVectors(Ions& target, const Ions& source);
 
 #endif // _PEPFRAG_IONGENERATOR_H

@@ -3,6 +3,7 @@
 
 #include <Python.h>
 #include <string>
+#include <vector>
 
 enum class IonType {
 	precursor = 1,
@@ -13,6 +14,11 @@ enum class IonType {
 	c = 6,
 	z = 7
 };
+
+// Forward declaration
+struct Ion;
+
+using Ions = std::vector<Ion>;
 		 
 struct Ion {
 	double mass;

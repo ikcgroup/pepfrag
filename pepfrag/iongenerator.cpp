@@ -7,6 +7,7 @@
 #include "iongenerator.h"
 #include "ion.h"
 
+// Defined for use with std::upper_bound, called by std::inplace_merge
 bool operator<(const Ion& left, const Ion& right)
 {
 	return left.position < right.position;
@@ -36,7 +37,7 @@ IonGeneratorPtr IonGenerator::create(IonType type) {
 	return NULL;
 }
 
-std::vector<Ion> IonGenerator::generate(
+Ions IonGenerator::generate(
 	const std::vector<double>& _masses,
 	long charge,
 	const std::vector<std::string>& neutralLosses,
@@ -45,7 +46,7 @@ std::vector<Ion> IonGenerator::generate(
 {
 	std::vector<double> masses = preProcessMasses(_masses);
 	
-	std::vector<Ion> ions;
+	Ions ions;
 	ions.reserve(masses.size() * 10);
 	
 	for (int ii = 0; ii < (int) masses.size(); ii++) {
@@ -54,22 +55,22 @@ std::vector<Ion> IonGenerator::generate(
 		ions.push_back(generateBaseIon(ion_mass, ii, sequence));
 		
 		if (radical) {
-			mergeIonVectors(ions, generateRadicalIons(ion_mass, ii));
+			generateRadicalIons(ions, ion_mass, ii);
 		}
 		
 		if (!neutralLosses.empty()) {
-			mergeIonVectors(ions, generateNeutralLosses(ion_mass, ii, neutralLosses));
+			generateNeutralLosses(ions, ion_mass, ii, neutralLosses);
 		}
 	}
 	
 	// Perform charging based on the singly charged ions in "ions" and update
 	// "chargedIons" so that doubly charged ions are not re-submitted to chargeIons
 	// since this results in ions like [23+]
-	std::vector<Ion> chargedIons;
+	Ions chargedIons;
 	chargedIons.reserve(ions.size() * charge);
 	chargedIons = ions;
 	for (long cs = 1; cs < charge; cs++) {
-		mergeIonVectors(chargedIons, chargeIons(ions, cs + 1));
+		chargeIons(ions, chargedIons, cs + 1);
 	}
 
 	return chargedIons;
@@ -85,22 +86,18 @@ Ion IonGenerator::generateBaseIon(double mass, long position, const std::string&
 	return {mass, ionLabel + std::to_string(position + 1) + "[+]", position + 1};
 }
 
-std::vector<Ion> IonGenerator::generateRadicalIons(double mass, long position) const {
-	return std::vector<Ion>();
+void IonGenerator::generateRadicalIons(Ions& ions, double mass, long position) const {
 }
 
-std::vector<Ion> IonGenerator::generateNeutralLosses(
+void IonGenerator::generateNeutralLosses(
+	Ions& ions,
 	double mass,
 	long position,
 	const std::vector<std::string>& neutralLosses) const
 {
-	std::vector<Ion> ions;
-	ions.reserve(neutralLosses.size());
 	for (const std::string& neutralLoss : neutralLosses) {
 		ions.push_back(generateNeutralLossIon(ionLabel, neutralLoss, mass, position));
 	}
-
-	return ions;
 }
 
 double IonGenerator::fixMass(double mass) const {
@@ -111,12 +108,12 @@ double IonGenerator::fixMass(double mass) const {
 
 BIonGenerator::BIonGenerator() : IonGenerator("b") {}
 
-std::vector<Ion> BIonGenerator::generateRadicalIons(double mass, long position) const {
-	return std::vector<Ion>{
-		Ion(mass,
-			"[" + ionLabel + std::to_string(position + 1) + "-H[•+]",
-			position + 1)
-	};
+void BIonGenerator::generateRadicalIons(Ions& ions, double mass, long position) const {
+	ions.emplace_back(
+		mass,
+		"[" + ionLabel + std::to_string(position + 1) + "-H[•+]",
+		position + 1
+	);
 }
 
 double BIonGenerator::fixMass(double mass) const {
@@ -127,10 +124,6 @@ double BIonGenerator::fixMass(double mass) const {
 
 YIonGenerator::YIonGenerator() : IonGenerator("y") {}
 
-std::vector<Ion> YIonGenerator::generateRadicalIons(double mass, long position) const {
-	return std::vector<Ion>();
-}
-
 double YIonGenerator::fixMass(double mass) const {
 	return mass + PROTON_MASS;
 }
@@ -139,11 +132,17 @@ double YIonGenerator::fixMass(double mass) const {
 
 AIonGenerator::AIonGenerator() : IonGenerator("a") {}
 
-std::vector<Ion> AIonGenerator::generateRadicalIons(double mass, long position) const {
-	return std::vector<Ion>{
-		Ion(mass - PROTON_MASS, "[" + ionLabel + std::to_string(position + 1) + "-H][•+]", position + 1),
-		Ion(mass + PROTON_MASS, "[" + ionLabel + std::to_string(position + 1) + "+H][•+]", position + 1)
-	};
+void AIonGenerator::generateRadicalIons(Ions& ions, double mass, long position) const {
+	ions.emplace_back(
+		mass - PROTON_MASS,
+		"[" + ionLabel + std::to_string(position + 1) + "-H][•+]",
+		position + 1
+	);
+	ions.emplace_back(
+		mass + PROTON_MASS,
+		"[" + ionLabel + std::to_string(position + 1) + "+H][•+]",
+		position + 1
+	);
 }
 
 double AIonGenerator::fixMass(double mass) const {
@@ -154,10 +153,12 @@ double AIonGenerator::fixMass(double mass) const {
 
 CIonGenerator::CIonGenerator() : IonGenerator("c") {}
 
-std::vector<Ion> CIonGenerator::generateRadicalIons(double mass, long position) const {
-	return std::vector<Ion>{
-		Ion(mass + 2 * PROTON_MASS, "[" + ionLabel + std::to_string(position + 1) + "+2H][•+]", position + 1)
-	};
+void CIonGenerator::generateRadicalIons(Ions& ions, double mass, long position) const {
+	ions.emplace_back(
+		mass + 2 * PROTON_MASS,
+		"[" + ionLabel + std::to_string(position + 1) + "+2H][•+]",
+		position + 1
+	);
 }
 
 double CIonGenerator::fixMass(double mass) const {
@@ -168,10 +169,12 @@ double CIonGenerator::fixMass(double mass) const {
 
 ZIonGenerator::ZIonGenerator() : IonGenerator("z") {}
 
-std::vector<Ion> ZIonGenerator::generateRadicalIons(double mass, long position) const {
-	return std::vector<Ion>{
-		Ion(mass - PROTON_MASS, "[" + ionLabel + std::to_string(position + 1) + "-H][•+]", position + 1)
-	};
+void ZIonGenerator::generateRadicalIons(Ions& ions, double mass, long position) const {
+	ions.emplace_back(
+		mass - PROTON_MASS,
+		"[" + ionLabel + std::to_string(position + 1) + "-H][•+]",
+		position + 1
+	);
 }
 
 double ZIonGenerator::fixMass(double mass) const {
@@ -189,7 +192,7 @@ std::vector<double> ImmoniumIonGenerator::preProcessMasses(const std::vector<dou
 Ion ImmoniumIonGenerator::generateBaseIon(double mass, long position, const std::string& sequence) const {
 	return {
 		mass,
-		ionLabel + "(" + sequence.at(position) + ")",
+		ionLabel + "(" + sequence[position] + ")",
 		0
 	};
 }
@@ -202,14 +205,14 @@ double ImmoniumIonGenerator::fixMass(double mass) const {
 
 PrecursorIonGenerator::PrecursorIonGenerator() : IonGenerator("M") {}
 
-std::vector<Ion> PrecursorIonGenerator::generate(
+Ions PrecursorIonGenerator::generate(
 	const std::vector<double>& masses,
 	long charge,
 	const std::vector<std::string>& neutralLosses,
 	bool radical,
 	const std::string& sequence) const
 {
-	std::vector<Ion> ions;
+	Ions ions;
 	ions.reserve(20);
 	
 	// Only use one mass - if multiple masses are passed to the PrecursorIonGenerator,
@@ -226,7 +229,7 @@ std::vector<Ion> PrecursorIonGenerator::generate(
 			"[" + ionLabel + "+H][" + chargeSymbol + "]",
 			seqLen
 		);
-		
+
 		if (radical) {
 			ions.emplace_back(
 				mass / (double) cs,
@@ -262,15 +265,17 @@ Ion PrecursorIonGenerator::generateBaseIon(
 	throw NotImplementedException();
 }
 	
-std::vector<Ion> PrecursorIonGenerator::generateRadicalIons(
+void PrecursorIonGenerator::generateRadicalIons(
+	Ions& /*ions*/,
 	double /*mass*/,
 	long /*position*/) const 
 {
 	// This method intentionally does nothing and should not be called
 	throw NotImplementedException();
 }
-			
-std::vector<Ion> PrecursorIonGenerator::generateNeutralLosses(
+
+void PrecursorIonGenerator::generateNeutralLosses(
+	Ions& /*ions*/,
 	double /*mass*/,
 	long /*position*/,
 	const std::vector<std::string>& /*neutralLosses*/) const
@@ -286,24 +291,22 @@ double PrecursorIonGenerator::fixMass(double /*mass*/) const {
 
 /* Utility functions */
 
-std::vector<Ion> chargeIons(const std::vector<Ion>& ions, long chargeState) {
+void chargeIons(const Ions& sourceIons, Ions& target, long chargeState) {
 	double hMass = PROTON_MASS * (chargeState - 1);
-	std::vector<Ion> chargedIons;
-	chargedIons.reserve(ions.size());
 	long minPos = 2 * chargeState - 1;
-	for (const Ion& ion : ions) {
+	std::string chargeStr = std::to_string(chargeState) + "+";
+	for (const Ion& ion : sourceIons) {
 		if (ion.position >= minPos) {
 			std::string label = ion.label;
-			chargedIons.emplace_back(
+			target.emplace_back(
 				(ion.mass + hMass) / (double) chargeState,
-				label.replace(ion.label.find('+'), 1, std::to_string(chargeState) + "+"),
+				label.replace(ion.label.find('+'), 1, chargeStr),
 				ion.position);
 		}
 	}
-	return chargedIons;
 }
 
-void mergeIonVectors(std::vector<Ion>& target, const std::vector<Ion>& source) {
+void mergeIonVectors(Ions& target, const Ions& source) {
 	size_t n = target.size();
 	target.insert(target.end(), std::make_move_iterator(source.begin()), std::make_move_iterator(source.end()));
 	std::inplace_merge(target.begin(), target.begin() + n, target.end());

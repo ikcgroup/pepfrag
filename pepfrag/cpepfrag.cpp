@@ -45,7 +45,7 @@ PyObject* python_generateIons(PyObject* module, PyObject* args) {
 	std::vector<double> yMasses = listToDoubleVector(yMassList);
 	std::vector<double> precMasses = std::vector<double>{ PyFloat_AsDouble(precMass) };
 	
-	std::vector<Ion> ions;
+	Ions ions;
 	ions.reserve(1000);
 	for (const auto& pair : ionConfigs) {
 		const std::vector<double>* massList;

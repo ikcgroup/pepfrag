@@ -38,13 +38,13 @@ class IonType(enum.Enum):
 
 
 DEFAULT_IONS: Dict[IonType, List[str]] = {
-    IonType.precursor: ["H2O", "NH3", "CO2"],
-    IonType.imm: [],
-    IonType.b: ["H2O", "NH3", "CO"],
-    IonType.y: ["NH3", "H2O"],
-    IonType.a: [],
-    IonType.c: [],
-    IonType.z: []
+    IonType.precursor.value: ["H2O", "NH3", "CO2"],
+    IonType.imm.value: [],
+    IonType.b.value: ["H2O", "NH3", "CO"],
+    IonType.y.value: ["NH3", "H2O"],
+    IonType.a.value: [],
+    IonType.c.value: [],
+    IonType.z.value: []
 }
 
 
@@ -147,7 +147,7 @@ class Peptide():
         self._mods = mods
 
     @property
-    @functools.lru_cache(maxsize=None)
+    #@functools.lru_cache(maxsize=None)
     def peptide_mass(self) -> PeptideMass:
         """
         Returns the mass of the peptide, including modifications.
@@ -162,9 +162,7 @@ class Peptide():
 
         """
         pep_mass = self.peptide_mass
-        mass = sum(pep_mass.seq) + FIXED_MASSES["H2O"]
-        if pep_mass.nterm is not None:
-            mass += pep_mass.nterm
+        mass = sum(pep_mass[:-1]) + FIXED_MASSES["H2O"]
         return mass
 
     def __repr__(self) -> str:
@@ -258,11 +256,10 @@ class Peptide():
 
         """
         b_masses, y_masses = self._ion_masses()
-
         return generate_ions(
-            {t.value: nl for t, nl in ion_types.items()},
+            ion_types,
             self.mass,
-            self.peptide_mass.seq,
+            self.peptide_mass[1:-1],
             b_masses,
             y_masses,
             self.charge,

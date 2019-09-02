@@ -28,13 +28,16 @@ const std::unordered_map<char, double> AA_MASSES{
 	{'W', 186.07931295073}
 };
 
+ModMassSite::ModMassSite(long _site, double _mass)
+	: site(_site), mass(_mass) {}
+
 // TODO: in just one loop
 std::vector<double> calculateMass(const std::string& sequence, const std::vector<ModMassSite>& modSites) {
 	// Position 0 is the N-term mass, Position sequence.size() + 1 is the C-term mass
 	size_t seqLen = sequence.size();
 	std::vector<double> siteModMasses(seqLen + 2, 0);
-	for (const auto& modSite : modSites) {
-		siteModMasses[modSite.first] += modSite.second;
+	for (const ModMassSite& modSite : modSites) {
+		siteModMasses[modSite.site] += modSite.mass;
 	}
 
 	std::vector<double> seqMasses(seqLen + 2);

@@ -27,24 +27,22 @@ std::string unicodeToString(PyObject* obj) {
 
 template<class T>
 std::vector<T> listToVector(PyObject* source, bool(*check)(PyObject*), T(*convert)(PyObject*)) {
-	std::vector<T> data;
-	if (PyList_Check(source)) {
-		long size = (long) PyList_Size(source);
-		data.reserve(size);
-		for (Py_ssize_t ii = 0; ii < size; ii++) {
-			PyObject* value = PyList_GetItem(source, ii);
-			if (check(value)) {
-				data.push_back(convert(value));
-			}
-			else {
-				throw std::logic_error("Contained PyObject pointer was not expected type");
-			}
-		}
-	}
-	else {
+	if (!PyList_Check(source)) {
 		throw std::logic_error("PyObject pointer was not a list");
 	}
 	
+	long size = (long) PyList_Size(source);
+	std::vector<T> data;
+	data.reserve(size);
+	for (Py_ssize_t ii = 0; ii < size; ii++) {
+		PyObject* value = PyList_GetItem(source, ii);
+		if (check(value)) {
+			data.push_back(convert(value));
+		}
+		else {
+			throw std::logic_error("Contained PyObject pointer was not expected type");
+		}
+	}
 	return data;
 }
 
@@ -57,19 +55,20 @@ std::vector<std::string> listToStringVector(PyObject* source) {
 }
 
 std::unordered_map<IonType, std::vector<std::string>> dictToIonTypeMap(PyObject* source) {
-	std::unordered_map<IonType, std::vector<std::string>> types;
-	if (PyDict_Check(source)) {
-		PyObject *key, *value;
-		Py_ssize_t pos = 0;
-		while (PyDict_Next(source, &pos, &key, &value)) {
-			types.emplace(
-				static_cast<IonType>( PyLong_AsLong( key ) ),
-				listToStringVector(value));
-		}
-	}
-	else {
+	if (!PyDict_Check(source)) {
 		throw std::logic_error("PyObject pointer was not a dict");
 	}
+	
+	std::unordered_map<IonType, std::vector<std::string>> types;
+	types.reserve((long) PyDict_Size(source));
+	PyObject *key, *value;
+	Py_ssize_t pos = 0;
+	while (PyDict_Next(source, &pos, &key, &value)) {
+		types.emplace(
+			static_cast<IonType>( PyLong_AsLong( key ) ),
+			listToStringVector(value));
+	}
+	
 	return types;
 }
 
@@ -120,10 +119,12 @@ PyObject* doubleVectorToList(const std::vector<double>& data) {
 	return vectorToList<double>(data, &PyFloat_FromDouble);
 }
 
-PyObject* ionVectorToList(const std::vector<Ion>& ions) {
+PyObject* ionVectorToList(const Ions& ions) {
 	PyObject* listObj = PyList_New(ions.size());
 
-	for (int ii = 0; ii < (int) ions.size(); ii++) {
+	int size = (int) ions.size();
+
+	for (int ii = 0; ii < size; ii++) {
 		PyList_SetItem(listObj, ii, (PyObject*) ions[ii]);
 	}
 	
