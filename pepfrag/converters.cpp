@@ -27,15 +27,15 @@ std::string unicodeToString(PyObject* obj) {
 
 template<class T>
 std::vector<T> listToVector(PyObject* source, bool(*check)(PyObject*), T(*convert)(PyObject*)) {
-	if (!PyList_Check(source)) {
-		throw std::logic_error("PyObject pointer was not a list");
+	if (!PySequence_Check(source)) {
+		throw std::logic_error("PyObject pointer was not a sequence");
 	}
 	
-	long size = (long) PyList_Size(source);
+	long size = (long) PySequence_Size(source);
 	std::vector<T> data;
 	data.reserve(size);
 	for (Py_ssize_t ii = 0; ii < size; ii++) {
-		PyObject* value = PyList_GetItem(source, ii);
+		PyObject* value = PySequence_GetItem(source, ii);
 		if (check(value)) {
 			data.push_back(convert(value));
 		}
@@ -73,17 +73,17 @@ std::unordered_map<IonType, std::vector<std::string>> dictToIonTypeMap(PyObject*
 }
 
 std::vector<ModMassSite> modSiteListToVector(PyObject* source, size_t seqLen) {
-	if (!PyList_Check(source)) {
-		throw std::logic_error("PyObject pointer was not a list");
+	if (!PySequence_Check(source)) {
+		throw std::logic_error("PyObject pointer was not a sequence");
 	}
 
-	Py_ssize_t size = PyList_Size(source);
+	Py_ssize_t size = PySequence_Size(source);
 
 	std::vector<ModMassSite> modSites;
 	modSites.reserve(size);
 
 	for (Py_ssize_t ii = 0; ii < size; ii++) {
-		PyObject* tuple = PyList_GetItem(source, ii);
+		PyObject* tuple = PySequence_GetItem(source, ii);
 		PyObject* site = PyTuple_GetItem(tuple, 1);
 
 		long siteIdx;
