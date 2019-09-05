@@ -22,28 +22,26 @@ Ions generateIons(
 }
 
 PyObject* python_generateIons(PyObject* module, PyObject* args) {
-	PyObject *ionTypes, *precMass, *pySeqMasses, *bMassList,
-	         *yMassList, *pyCharge, *pyRadical, *pySequence;
+	PyObject *ionTypes, *pySeqMasses, *bMassList, *yMassList, *pySequence;
+	double precMass;
+	long charge;
+	int radical;
 	
 	try {
-		if (!PyArg_UnpackTuple(args, "cpython_generateIons", 8, 8,
-							   &ionTypes, &precMass, &pySeqMasses, &bMassList,
-							   &yMassList, &pyCharge,
-							   &pyRadical, &pySequence)) return NULL;
+		if (!PyArg_ParseTuple(args, "OdO&OOliO", &ionTypes, &precMass, &pySeqMasses, &bMassList,
+				      &yMassList, &charge, &radical, &pySequence)) return NULL;
 	} catch (const std::exception& ex) {
 		PyErr_SetString(PyExc_RuntimeError, ex.what());
 	}
 	
 	std::unordered_map<IonType, std::vector<std::string>> ionConfigs = dictToIonTypeMap(ionTypes);
 	
-	long charge = PyLong_AsLong(pyCharge);
-	bool radical = PyObject_IsTrue(pyRadical);
 	std::string sequence = PyUnicode_AsUTF8(pySequence);
 	
 	std::vector<double> seqMasses = listToDoubleVector(pySeqMasses);
 	std::vector<double> bMasses = listToDoubleVector(bMassList);
 	std::vector<double> yMasses = listToDoubleVector(yMassList);
-	std::vector<double> precMasses = std::vector<double>{ PyFloat_AsDouble(precMass) };
+	std::vector<double> precMasses = std::vector<double>{ precMass };
 	
 	Ions ions;
 	ions.reserve(1000);
@@ -65,15 +63,16 @@ PyObject* python_generateIons(PyObject* module, PyObject* args) {
 			case IonType::precursor:
 				massList = &precMasses;
 				break;
+			default:
+				PyErr_SetString(PyExc_RuntimeError, "Invalid ion type specified");
+				return NULL;
 		}
 		
 		mergeIonVectors(ions, generateIons(pair.first, *massList, charge, pair.second,
-			                               radical, sequence));
+			                               (bool) radical, sequence));
 	}
 	
-	//return vectorToList<Ion>(ions);
-	//return ionVectorToList(ions);
-	return vectorToList(ions);
+	return vectorToList<Ion>(ions);
 }
 
 PyObject* python_calculateMass(PyObject* module, PyObject* args) {
