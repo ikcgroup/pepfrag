@@ -2,6 +2,7 @@
 #include <iterator>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -13,6 +14,26 @@ bool operator<(const Ion& left, const Ion& right)
 {
 	return left.position < right.position;
 }
+
+/* StringCache */
+
+class StringCache {
+        static std::unordered_map<long, std::string> cache;
+
+        public:
+
+                static std::string get(long n) {
+                        auto it = cache.find(n);
+                        if (it != cache.end()) {
+                                return it->second;
+                        }
+                        std::string entry = std::to_string(n);
+                        cache[n] = entry;
+                        return entry;
+                }
+};
+
+std::unordered_map<long, std::string> StringCache::cache = std::unordered_map<long, std::string>();
 
 /* IonGenerator */
 
@@ -82,7 +103,7 @@ std::pair<int, int> IonGenerator::preProcessMasses(const std::vector<double>& ma
 }
 
 Ion IonGenerator::generateBaseIon(double mass, long position, const std::string& /*sequence*/) const {
-	return {mass, ionLabel + std::to_string(position + 1) + "[+]", position + 1};
+	return {mass, ionLabel + StringCache::get(position + 1) + "[+]", position + 1};
 }
 
 void IonGenerator::generateRadicalIons(Ions& ions, double mass, long position) const {
@@ -110,7 +131,7 @@ BIonGenerator::BIonGenerator() : IonGenerator("b") {}
 void BIonGenerator::generateRadicalIons(Ions& ions, double mass, long position) const {
 	ions.emplace_back(
 		mass,
-		"[" + ionLabel + std::to_string(position + 1) + "-H[•+]",
+		"[" + ionLabel + StringCache::get(position + 1) + "-H[•+]",
 		position + 1
 	);
 }
@@ -134,12 +155,12 @@ AIonGenerator::AIonGenerator() : IonGenerator("a") {}
 void AIonGenerator::generateRadicalIons(Ions& ions, double mass, long position) const {
 	ions.emplace_back(
 		mass - PROTON_MASS,
-		"[" + ionLabel + std::to_string(position + 1) + "-H][•+]",
+		"[" + ionLabel + StringCache::get(position + 1) + "-H][•+]",
 		position + 1
 	);
 	ions.emplace_back(
 		mass + PROTON_MASS,
-		"[" + ionLabel + std::to_string(position + 1) + "+H][•+]",
+		"[" + ionLabel + StringCache::get(position + 1) + "+H][•+]",
 		position + 1
 	);
 }
@@ -155,7 +176,7 @@ CIonGenerator::CIonGenerator() : IonGenerator("c") {}
 void CIonGenerator::generateRadicalIons(Ions& ions, double mass, long position) const {
 	ions.emplace_back(
 		mass + 2 * PROTON_MASS,
-		"[" + ionLabel + std::to_string(position + 1) + "+2H][•+]",
+		"[" + ionLabel + StringCache::get(position + 1) + "+2H][•+]",
 		position + 1
 	);
 }
@@ -171,7 +192,7 @@ ZIonGenerator::ZIonGenerator() : IonGenerator("z") {}
 void ZIonGenerator::generateRadicalIons(Ions& ions, double mass, long position) const {
 	ions.emplace_back(
 		mass - PROTON_MASS,
-		"[" + ionLabel + std::to_string(position + 1) + "-H][•+]",
+		"[" + ionLabel + StringCache::get(position + 1) + "-H][•+]",
 		position + 1
 	);
 }
@@ -221,7 +242,7 @@ Ions PrecursorIonGenerator::generate(
 	long seqLen = (long) sequence.size();
 	
 	for (long cs = 1; cs < charge + 1; cs++) {
-		std::string chargeSymbol = (radical ? "•" : "") + (cs > 1 ? std::to_string(cs) : "") + "+";
+		std::string chargeSymbol = (radical ? "•" : "") + (cs > 1 ? StringCache::get(cs) : "") + "+";
 		
 		ions.emplace_back(
 			(mass / (double) cs) + PROTON_MASS,
@@ -293,7 +314,7 @@ double PrecursorIonGenerator::fixMass(double /*mass*/) const {
 void chargeIons(const Ions& sourceIons, Ions& target, long chargeState) {
 	double hMass = PROTON_MASS * (chargeState - 1);
 	long minPos = 2 * chargeState - 1;
-	std::string chargeStr = std::to_string(chargeState) + "+";
+	std::string chargeStr = StringCache::get(chargeState) + "+";
 	for (const Ion& ion : sourceIons) {
 		if (ion.position >= minPos) {
 			std::string label = ion.label;
