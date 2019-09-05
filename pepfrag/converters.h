@@ -3,7 +3,7 @@
 
 #include <Python.h>
 #include <string>
-#include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "ion.h"
@@ -13,7 +13,7 @@ std::vector<double> listToDoubleVector(PyObject* source);
 
 std::vector<std::string> listToStringVector(PyObject* source);
 
-std::unordered_map<IonType, std::vector<std::string>> dictToIonTypeMap(PyObject* source);
+std::vector<std::pair<IonType, std::vector<std::string>>> dictToIonTypeMap(PyObject* source);
 
 std::vector<ModMassSite> modSiteListToVector(PyObject* source, size_t seqLen);
 

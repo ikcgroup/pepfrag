@@ -1,7 +1,7 @@
 #include <Python.h>
 #include <stdexcept>
 #include <string>
-#include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "converters.h"
@@ -56,19 +56,20 @@ std::vector<std::string> listToStringVector(PyObject* source) {
 	return listToVector<std::string>(source, &checkString, &unicodeToString);
 }
 
-std::unordered_map<IonType, std::vector<std::string>> dictToIonTypeMap(PyObject* source) {
+std::vector<std::pair<IonType, std::vector<std::string>>> dictToIonTypeMap(PyObject* source) {
 	if (!PyDict_Check(source)) {
 		throw std::logic_error("PyObject pointer was not a dict");
 	}
 	
-	std::unordered_map<IonType, std::vector<std::string>> types;
+	std::vector<std::pair<IonType, std::vector<std::string>>> types;
 	types.reserve((long) PyDict_Size(source));
 	PyObject *key, *value;
 	Py_ssize_t pos = 0;
 	while (PyDict_Next(source, &pos, &key, &value)) {
-		types.emplace(
+		types.emplace_back(
 			static_cast<IonType>( PyLong_AsLong( key ) ),
-			listToStringVector(value));
+                        listToStringVector(value)
+		);
 	}
 	
 	return types;

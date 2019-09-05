@@ -28,13 +28,13 @@ PyObject* python_generateIons(PyObject* module, PyObject* args) {
 	int radical;
 	
 	try {
-		if (!PyArg_ParseTuple(args, "OdO&OOliO", &ionTypes, &precMass, &pySeqMasses, &bMassList,
+		if (!PyArg_ParseTuple(args, "OdOOOliO", &ionTypes, &precMass, &pySeqMasses, &bMassList,
 				      &yMassList, &charge, &radical, &pySequence)) return NULL;
 	} catch (const std::exception& ex) {
 		PyErr_SetString(PyExc_RuntimeError, ex.what());
 	}
 	
-	std::unordered_map<IonType, std::vector<std::string>> ionConfigs = dictToIonTypeMap(ionTypes);
+	std::vector< std::pair< IonType, std::vector< std::string > > > ionConfigs = dictToIonTypeMap(ionTypes);
 	
 	std::string sequence = PyUnicode_AsUTF8(pySequence);
 	
