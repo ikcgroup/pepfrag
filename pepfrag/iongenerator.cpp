@@ -2,6 +2,7 @@
 #include <iterator>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "iongenerator.h"
@@ -38,18 +39,18 @@ IonGeneratorPtr IonGenerator::create(IonType type) {
 }
 
 Ions IonGenerator::generate(
-	const std::vector<double>& _masses,
+	const std::vector<double>& masses,
 	long charge,
 	const std::vector<std::string>& neutralLosses,
 	bool radical,
 	const std::string& sequence) const
 {
-	std::vector<double> masses = preProcessMasses(_masses);
+	std::pair<int, int> massIndices = preProcessMasses(masses);
 	
 	Ions ions;
 	ions.reserve(masses.size() * 10);
 	
-	for (int ii = 0; ii < (int) masses.size(); ii++) {
+	for (int ii = massIndices.first; ii < massIndices.second; ii++) {
 		double ion_mass = fixMass(masses[ii]);
 		
 		ions.push_back(generateBaseIon(ion_mass, ii, sequence));
@@ -76,10 +77,8 @@ Ions IonGenerator::generate(
 	return chargedIons;
 }
 
-std::vector<double> IonGenerator::preProcessMasses(const std::vector<double>& masses) const {
-	std::vector<double> _masses = masses;
-	_masses.pop_back();
-	return _masses;
+std::pair<int, int> IonGenerator::preProcessMasses(const std::vector<double>& masses) const {
+	return std::make_pair(0, masses.size() - 1);
 }
 
 Ion IonGenerator::generateBaseIon(double mass, long position, const std::string& /*sequence*/) const {
@@ -185,8 +184,8 @@ double ZIonGenerator::fixMass(double mass) const {
 
 ImmoniumIonGenerator::ImmoniumIonGenerator() : IonGenerator("imm") {}
 
-std::vector<double> ImmoniumIonGenerator::preProcessMasses(const std::vector<double>& masses) const {
-	return masses;
+std::pair<int, int> ImmoniumIonGenerator::preProcessMasses(const std::vector<double>& masses) const {
+	return std::make_pair(0, masses.size());
 }
 
 Ion ImmoniumIonGenerator::generateBaseIon(double mass, long position, const std::string& sequence) const {
@@ -249,7 +248,7 @@ Ions PrecursorIonGenerator::generate(
 	return ions;
 }
 
-std::vector<double> PrecursorIonGenerator::preProcessMasses(
+std::pair<int, int> PrecursorIonGenerator::preProcessMasses(
 	const std::vector<double>& /*masses*/) const
 {
 	// This method intentionally does nothing and should not be called
