@@ -22,8 +22,8 @@ std::vector<Ion> generateIons(
 }
 
 PyObject* python_generateIons(PyObject* module, PyObject* args) {
-	PyObject *ionTypes = NULL, *precMass = NULL, *pySeqMasses = NULL, *bMassList = NULL,
-	         *yMassList = NULL, *pyCharge = NULL, *pyRadical = NULL, *pySequence = NULL;
+	PyObject *ionTypes, *precMass, *pySeqMasses, *bMassList,
+	         *yMassList, *pyCharge, *pyRadical, *pySequence;
 	
 	try {
 		if (!PyArg_UnpackTuple(args, "cpython_generateIons", 8, 8,
@@ -47,8 +47,8 @@ PyObject* python_generateIons(PyObject* module, PyObject* args) {
 	
 	Ions ions;
 	ions.reserve(1000);
+	const std::vector<double>* massList;
 	for (const auto& pair : ionConfigs) {
-		const std::vector<double>* massList;
 		switch (pair.first) {
 			case IonType::b:
 			case IonType::a:
@@ -75,10 +75,9 @@ PyObject* python_generateIons(PyObject* module, PyObject* args) {
 }
 
 PyObject* python_calculateMass(PyObject* module, PyObject* args) {
-	PyObject* sequence = NULL;
-	PyObject* modSites = NULL;
+	PyObject *sequence, *modSites;
 
-	if (!PyArg_UnpackTuple(args, "cpython_calculateMass", 2, 2, &sequence, &modSites)) return NULL;
+	if (!PyArg_UnpackTuple(args, "calculateMass", 2, 2, &sequence, &modSites)) return NULL;
 
 	std::string seq = PyUnicode_AsUTF8(sequence);
 
