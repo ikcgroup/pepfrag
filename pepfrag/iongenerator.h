@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "ion.h"
@@ -54,7 +55,7 @@ class IonGenerator {
 			const std::string& sequence) const;
 		
 	private:
-		virtual std::vector<double> preProcessMasses(
+		virtual std::pair<int, int> preProcessMasses(
 			const std::vector<double>& masses) const;
 	
 		virtual Ion generateBaseIon(
@@ -160,7 +161,7 @@ class ImmoniumIonGenerator : public IonGenerator
 		~ImmoniumIonGenerator() override = default;
 		
 	private:
-		std::vector<double> preProcessMasses(
+		std::pair<int, int> preProcessMasses(
 			const std::vector<double>& masses) const override;
 	
 		Ion generateBaseIon(
@@ -186,7 +187,7 @@ class PrecursorIonGenerator : public IonGenerator
 			const std::string& sequence) const override;
 		
 	private:
-		std::vector<double> preProcessMasses(
+		std::pair<int, int> preProcessMasses(
 			const std::vector<double>& masses) const override;
 	
 		Ion generateBaseIon(
