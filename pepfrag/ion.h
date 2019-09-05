@@ -29,12 +29,17 @@ struct Ion {
 		: mass(_mass), label(_label), position(_position) {}
 		
 	explicit operator PyObject*() const {
-		return PyTuple_Pack(
-			3,
-			PyFloat_FromDouble(mass),
-			PyUnicode_FromString(label.c_str()),
-			PyLong_FromLong(position)
-		);
+		PyObject* pMass = PyFloat_FromDouble(mass);
+		PyObject* pLabel = PyUnicode_FromString(label.c_str());
+		PyObject* pPosition = PyLong_FromLong(position);
+
+		PyObject* tuple = PyTuple_Pack(3, pMass, pLabel, pPosition);
+
+		Py_DECREF(pMass);
+		Py_DECREF(pLabel);
+		Py_DECREF(pPosition);
+
+		return tuple;
 	}
 };
 
