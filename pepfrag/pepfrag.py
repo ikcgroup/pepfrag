@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import collections
 import enum
-import functools
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from cpepfrag import calculate_mass, generate_ions
@@ -84,7 +83,7 @@ class Peptide():
         Args:
             sequence (str): The peptide sequence (single character format).
             charge (int): The charge state of the peptide.
-            modifications (list): TODO: ModSites?
+            modifications (list): The modifications applied to the peptide.
 
         """
         self.seq = sequence
@@ -147,7 +146,6 @@ class Peptide():
         self._mods = mods
 
     @property
-    #@functools.lru_cache(maxsize=None)
     def peptide_mass(self) -> PeptideMass:
         """
         Returns the mass of the peptide, including modifications.
