@@ -9,7 +9,7 @@
 #include "ion.h"
 #include "mass.h"
 
-std::vector<Ion> generateIons(
+Ions generateIons(
 	IonType type,
 	const std::vector<double>& masses,
 	long charge,
@@ -71,7 +71,9 @@ PyObject* python_generateIons(PyObject* module, PyObject* args) {
 			                               radical, sequence));
 	}
 	
-	return ionVectorToList(ions);
+	//return vectorToList<Ion>(ions);
+	//return ionVectorToList(ions);
+	return vectorToList(ions);
 }
 
 PyObject* python_calculateMass(PyObject* module, PyObject* args) {
@@ -81,10 +83,10 @@ PyObject* python_calculateMass(PyObject* module, PyObject* args) {
 
 	std::string seq = PyUnicode_AsUTF8(sequence);
 
-	return doubleVectorToList(calculateMass(
+	return vectorToList(calculateMass(
 		seq,
 		modSiteListToVector(modSites, seq.size())
-	));
+	), &PyFloat_FromDouble);
 };
 
 // Boilerplate code for C++ extension

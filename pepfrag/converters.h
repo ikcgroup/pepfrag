@@ -17,8 +17,36 @@ std::unordered_map<IonType, std::vector<std::string>> dictToIonTypeMap(PyObject*
 
 std::vector<ModMassSite> modSiteListToVector(PyObject* source, size_t seqLen);
 
-PyObject* ionVectorToList(const std::vector<Ion>& ions);
+/* C++ to Python */
 
-PyObject* doubleVectorToList(const std::vector<double>& data);
+template<class T>
+PyObject* vectorToList(const std::vector<T>& data, PyObject*(*convert)(T)) {
+        long size = (long) data.size();
+        PyObject* listObj = PyList_New(size);
+        for (long ii = 0; ii < size; ii++) {
+                PyList_SET_ITEM(listObj, ii, convert(data[ii]));
+        }
+        return listObj;
+}
+
+template<class T>
+PyObject* vectorToList(const std::vector<T>& data, PyObject*(*convert)(const T&)) {
+        long size = (long) data.size();
+        PyObject* listObj = PyList_New(size);
+        for (long ii = 0; ii < size; ii++) {
+                PyList_SET_ITEM(listObj, ii, convert(data[ii]));
+        }
+        return listObj;
+}
+
+template<class T>
+PyObject* vectorToList(const std::vector<T>& data) {
+        long size = (long) data.size();
+        PyObject* listObj = PyList_New(size);
+        for (long ii = 0; ii < size; ii++) {
+                PyList_SET_ITEM(listObj, ii, (PyObject*) data[ii]);
+        }
+        return listObj;
+}
 
 #endif // _PEPFRAG_CONVERTERS_H

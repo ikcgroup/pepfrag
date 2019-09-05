@@ -84,10 +84,8 @@ std::vector<ModMassSite> modSiteListToVector(PyObject* source, size_t seqLen) {
 	std::vector<ModMassSite> modSites;
 	modSites.reserve(size);
 
-	PyObject* pFastSequence = PySequence_Fast(source, "Object is not a sequence");
-
 	for (Py_ssize_t ii = 0; ii < size; ii++) {
-		PyObject* tuple = PySequence_Fast_GET_ITEM(pFastSequence, ii);
+		PyObject* tuple = PySequence_GetItem(source, ii);
 
 		if (!PyTuple_Check(tuple)) {
 			throw std::logic_error("PyObject pointer was not a tuple");
@@ -108,35 +106,9 @@ std::vector<ModMassSite> modSiteListToVector(PyObject* source, size_t seqLen) {
 			siteIdx,
 			PyFloat_AsDouble(PyTuple_GET_ITEM(tuple, 0))
 		);
-	}
 
-	Py_DECREF(pFastSequence);
+		Py_DECREF(tuple);
+	}
 
 	return modSites;
-}
-
-/* C++ to Python */
-
-template<class T>
-PyObject* vectorToList(const std::vector<T>& data, PyObject*(*convert)(T)) {
-	PyObject* listObj = PyList_New(data.size());
-	for (size_t ii = 0; ii < data.size(); ii++) {
-		PyList_SET_ITEM(listObj, ii, convert(data[ii]));
-	}
-	return listObj;
-}
-
-PyObject* doubleVectorToList(const std::vector<double>& data) {
-	return vectorToList<double>(data, &PyFloat_FromDouble);
-}
-
-PyObject* ionVectorToList(const Ions& ions) {
-	long size = (long) ions.size();
-	PyObject* listObj = PyList_New(size);
-
-	for (long ii = 0; ii < size; ii++) {
-		PyList_SET_ITEM(listObj, ii, (PyObject*) ions[ii]);
-	}
-
-	return listObj;
 }
