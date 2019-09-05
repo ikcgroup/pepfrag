@@ -40,8 +40,10 @@ std::vector<T> listToVector(PyObject* source, bool(*check)(PyObject*), T(*conver
 			data.push_back(convert(value));
 		}
 		else {
+			Py_DECREF(value);
 			throw std::logic_error("Contained PyObject pointer was not expected type");
 		}
+		Py_DECREF(value);
 	}
 	return data;
 }
@@ -82,9 +84,16 @@ std::vector<ModMassSite> modSiteListToVector(PyObject* source, size_t seqLen) {
 	std::vector<ModMassSite> modSites;
 	modSites.reserve(size);
 
+	PyObject* pFastSequence = PySequence_Fast(source, "Object is not a sequence");
+
 	for (Py_ssize_t ii = 0; ii < size; ii++) {
-		PyObject* tuple = PySequence_GetItem(source, ii);
-		PyObject* site = PyTuple_GetItem(tuple, 1);
+		PyObject* tuple = PySequence_Fast_GET_ITEM(pFastSequence, ii);
+
+		if (!PyTuple_Check(tuple)) {
+			throw std::logic_error("PyObject pointer was not a tuple");
+		}
+
+		PyObject* site = PyTuple_GET_ITEM(tuple, 1);
 
 		long siteIdx;
 		if (PyLong_Check(site)) {
@@ -97,9 +106,11 @@ std::vector<ModMassSite> modSiteListToVector(PyObject* source, size_t seqLen) {
 
 		modSites.emplace_back(
 			siteIdx,
-			PyFloat_AsDouble(PyTuple_GetItem(tuple, 0))
+			PyFloat_AsDouble(PyTuple_GET_ITEM(tuple, 0))
 		);
 	}
+
+	Py_DECREF(pFastSequence);
 
 	return modSites;
 }
@@ -110,7 +121,7 @@ template<class T>
 PyObject* vectorToList(const std::vector<T>& data, PyObject*(*convert)(T)) {
 	PyObject* listObj = PyList_New(data.size());
 	for (size_t ii = 0; ii < data.size(); ii++) {
-		PyList_SetItem(listObj, ii, convert(data[ii]));
+		PyList_SET_ITEM(listObj, ii, convert(data[ii]));
 	}
 	return listObj;
 }
@@ -120,13 +131,12 @@ PyObject* doubleVectorToList(const std::vector<double>& data) {
 }
 
 PyObject* ionVectorToList(const Ions& ions) {
-	PyObject* listObj = PyList_New(ions.size());
+	long size = (long) ions.size();
+	PyObject* listObj = PyList_New(size);
 
-	int size = (int) ions.size();
-
-	for (int ii = 0; ii < size; ii++) {
-		PyList_SetItem(listObj, ii, (PyObject*) ions[ii]);
+	for (long ii = 0; ii < size; ii++) {
+		PyList_SET_ITEM(listObj, ii, (PyObject*) ions[ii]);
 	}
-	
+
 	return listObj;
 }
