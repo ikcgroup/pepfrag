@@ -81,7 +81,7 @@ class BIonGenerator : public IonGenerator
 	public:
 		BIonGenerator();
 
-		~BIonGenerator() override {};
+		~BIonGenerator() override = default;
 		
 	private:
 		void generateRadicalIons(
@@ -97,7 +97,7 @@ class YIonGenerator : public IonGenerator
 	public:
 		YIonGenerator();
 
-		~YIonGenerator() override {};
+		~YIonGenerator() override = default;
 		
 	private:
 			
@@ -109,7 +109,7 @@ class AIonGenerator : public IonGenerator
 	public:
 		AIonGenerator();
 
-		~AIonGenerator() override {};
+		~AIonGenerator() override = default;
 		
 	private:
 		void generateRadicalIons(
@@ -125,7 +125,7 @@ class CIonGenerator : public IonGenerator
 	public:
 		CIonGenerator();
 
-		~CIonGenerator() override {};
+		~CIonGenerator() override = default;
 		
 	private:
 		void generateRadicalIons(
@@ -141,7 +141,7 @@ class ZIonGenerator : public IonGenerator
 	public:
 		ZIonGenerator();
 
-		~ZIonGenerator() override {};
+		~ZIonGenerator() override = default;
 		
 	private:
 		void generateRadicalIons(
@@ -157,7 +157,7 @@ class ImmoniumIonGenerator : public IonGenerator
 	public:
 		ImmoniumIonGenerator();
 
-		~ImmoniumIonGenerator() override {};
+		~ImmoniumIonGenerator() override = default;
 		
 	private:
 		std::vector<double> preProcessMasses(
@@ -176,7 +176,7 @@ class PrecursorIonGenerator : public IonGenerator
 	public:
 		PrecursorIonGenerator();
 
-		~PrecursorIonGenerator() override {};
+		~PrecursorIonGenerator() override = default;
 		
 		Ions generate(
 			const std::vector<double>& masses,
