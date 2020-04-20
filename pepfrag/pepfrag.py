@@ -36,7 +36,7 @@ class IonType(enum.Enum):
     z = 7
 
 
-DEFAULT_IONS: Dict[IonType, List[str]] = {
+DEFAULT_IONS: Dict[int, List[str]] = {
     IonType.precursor.value: ["H2O", "NH3", "CO2"],
     IonType.imm.value: [],
     IonType.b.value: ["H2O", "NH3", "CO"],
