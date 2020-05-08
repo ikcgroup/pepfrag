@@ -30,49 +30,51 @@ PyObject* python_generateIons(PyObject* module, PyObject* args) {
 	try {
 		if (!PyArg_ParseTuple(args, "OdOOOliO", &ionTypes, &precMass, &pySeqMasses, &bMassList,
 				      &yMassList, &charge, &radical, &pySequence)) return NULL;
-	} catch (const std::exception& ex) {
-		PyErr_SetString(PyExc_RuntimeError, ex.what());
-	}
-	
-	std::vector< std::pair< IonType, std::vector< std::string > > > ionConfigs = dictToIonTypeMap(ionTypes);
-	
-	std::string sequence = PyUnicode_AsUTF8(pySequence);
-	
-	std::vector<double> seqMasses = listToDoubleVector(pySeqMasses);
-	std::vector<double> bMasses = listToDoubleVector(bMassList);
-	std::vector<double> yMasses = listToDoubleVector(yMassList);
-	std::vector<double> precMasses = std::vector<double>{ precMass };
-	
-	Ions ions;
-	ions.reserve(1000);
-	const std::vector<double>* massList;
-	for (const auto& pair : ionConfigs) {
-		switch (pair.first) {
-			case IonType::b:
-			case IonType::a:
-			case IonType::c:
-				massList = &bMasses;
-				break;
-			case IonType::y:
-			case IonType::z:
-				massList = &yMasses;
-				break;
-			case IonType::immonium:
-				massList = &seqMasses;
-				break;
-			case IonType::precursor:
-				massList = &precMasses;
-				break;
-			default:
-				PyErr_SetString(PyExc_RuntimeError, "Invalid ion type specified");
-				return NULL;
-		}
-		
-		mergeIonVectors(ions, generateIons(pair.first, *massList, charge, pair.second,
-			                               (bool) radical, sequence));
-	}
-	
-	return vectorToList<Ion>(ions);
+
+        std::vector< std::pair< IonType, std::vector< std::string > > > ionConfigs = dictToIonTypeMap(ionTypes);
+
+        std::string sequence = PyUnicode_AsUTF8(pySequence);
+
+        std::vector<double> seqMasses = listToDoubleVector(pySeqMasses);
+        std::vector<double> bMasses = listToDoubleVector(bMassList);
+        std::vector<double> yMasses = listToDoubleVector(yMassList);
+        std::vector<double> precMasses = std::vector<double>{ precMass };
+
+        Ions ions;
+        ions.reserve(1000);
+        const std::vector<double>* massList;
+        for (const auto& pair : ionConfigs) {
+            switch (pair.first) {
+                case IonType::b:
+                case IonType::a:
+                case IonType::c:
+                    massList = &bMasses;
+                    break;
+                case IonType::y:
+                case IonType::z:
+                    massList = &yMasses;
+                    break;
+                case IonType::immonium:
+                    massList = &seqMasses;
+                    break;
+                case IonType::precursor:
+                    massList = &precMasses;
+                    break;
+                default:
+                    PyErr_SetString(PyExc_RuntimeError, "Invalid ion type specified");
+                    return NULL;
+            }
+
+            mergeIonVectors(ions, generateIons(pair.first, *massList, charge, pair.second,
+                                               (bool) radical, sequence));
+        }
+
+        return vectorToList<Ion>(ions);
+    }
+    catch (const std::exception& ex) {
+        PyErr_SetString(PyExc_RuntimeError, ex.what());
+        return NULL;
+    }
 }
 
 PyObject* python_calculateMass(PyObject* module, PyObject* args) {
