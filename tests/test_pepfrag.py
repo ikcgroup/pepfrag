@@ -43,6 +43,26 @@ class TestPeptideMass(unittest.TestCase):
         peptide = Peptide('AAA', 2, [ModSite(21.981943, 'cterm', 'Cation:Na')])
         self.assertAlmostEqual(253.10, peptide.mass, 2)
 
+    def test_peptide_multiple_mods(self):
+        """
+        Tests that the calculated mono mass is correct for a peptide with many
+        modifications.
+
+        """
+        peptide = Peptide(
+            'AYHGMLPWK',
+            3,
+            [
+                ModSite(304.20536, 'nterm', 'iTRAQ8plex'),
+                ModSite(44.985078, 2, 'Nitro'),
+                ModSite(15.994915, 5, 'Oxidation'),
+                ModSite(15.994915, 7, 'Oxidation'),
+                ModSite(31.989829, 8, 'Dioxidation'),
+                ModSite(21.981943, 'cterm', 'Cation:Na')
+            ]
+        )
+        self.assertAlmostEqual(1536.70, peptide.mass, 2)
+
 
 class TestPeptideFragmentation(unittest.TestCase):
     """
@@ -57,7 +77,7 @@ class TestPeptideFragmentation(unittest.TestCase):
         self.assertIsNone(peptide.fragment_ions)
 
     def test_fragment_invalidation(self):
-        peptide = Peptide('AAA',2, [])
+        peptide = Peptide('AAA', 2, [])
         peptide.fragment()
         self.assertIsNotNone(peptide.fragment_ions)
         peptide.seq = 'AA'
@@ -77,6 +97,7 @@ class TestPeptideFragmentation(unittest.TestCase):
     def test_invalid_ion_types(self):
         peptide = Peptide('AAA', 2, [])
         with self.assertRaises(RuntimeError):
+            # noinspection PyTypeChecker
             peptide.fragment(ion_types={
                 IonType.b: []
             })
