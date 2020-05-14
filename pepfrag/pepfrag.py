@@ -15,7 +15,7 @@ from cpepfrag import calculate_mass, generate_ions
 from .constants import AA_MASSES, FIXED_MASSES, MassType
 
 
-Ion = collections.namedtuple("Ion", ["mass", "label", "pos"])
+Ion = Tuple[float, str, int]
 
 PeptideMass = collections.namedtuple("PeptideMass", ["nterm", "seq", "cterm"])
 
