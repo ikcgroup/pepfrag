@@ -78,16 +78,23 @@ PyObject* python_generateIons(PyObject* module, PyObject* args) {
 }
 
 PyObject* python_calculateMass(PyObject* module, PyObject* args) {
-	PyObject *sequence, *modSites;
+	PyObject *sequence, *modSites, *massType;
 
-	if (!PyArg_UnpackTuple(args, "calculateMass", 2, 2, &sequence, &modSites)) return NULL;
+	try {
+        if (!PyArg_UnpackTuple(args, "calculateMass", 3, 3, &sequence, &modSites, &massType)) return NULL;
 
-	std::string seq = PyUnicode_AsUTF8(sequence);
+        std::string seq = PyUnicode_AsUTF8(sequence);
 
-	return vectorToList(calculateMass(
-		seq,
-		modSiteListToVector(modSites, seq.size())
-	), &PyFloat_FromDouble);
+        return vectorToList(calculateMass(
+            seq,
+            modSiteListToVector(modSites, seq.size()),
+            PyLong_AsLong(massType)
+        ), &PyFloat_FromDouble);
+	}
+	catch (const std::exception& ex) {
+	    PyErr_SetString(PyExc_RuntimeError, ex.what());
+        return NULL;
+	}
 };
 
 // Boilerplate code for C++ extension

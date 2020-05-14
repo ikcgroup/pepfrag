@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import collections
 import enum
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import Dict, List, Optional, Sequence, Tuple
 
 from cpepfrag import calculate_mass, generate_ions
 
@@ -236,8 +236,7 @@ class Peptide:
             PeptideMass
 
         """
-        # TODO: pass MassType to C++
-        return calculate_mass(self.seq, self.mods)
+        return calculate_mass(self.seq, self.mods, self.mass_type.value)
 
     def fragment(
             self,

@@ -12,9 +12,13 @@ class MassType(enum.Enum):
     """
     An enumeration representing the possible mass types.
 
+    Note that the values of these enumerations correspond to their index in
+    `Mass`, and similarly in the C++ code underneath methods such as
+    calculate_mass.
+
     """
-    mono = enum.auto()
-    avg = enum.auto()
+    mono = 0
+    avg = 1
 
 
 Mass = collections.namedtuple('Mass', ['mono', 'avg'])

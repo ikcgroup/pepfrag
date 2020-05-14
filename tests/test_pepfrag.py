@@ -21,7 +21,7 @@ class TestPeptideMass(unittest.TestCase):
             [],
             mass_type=MassType.avg
         )
-        self.assertEqual(231.25, peptide.mass)
+        self.assertEqual(231.24, peptide.mass)
 
     def test_peptide_mass_mono_nterm_mod(self):
         """
