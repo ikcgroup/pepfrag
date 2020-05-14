@@ -56,7 +56,14 @@ std::vector<double> calculateMass(
 	seqMasses[0] = siteModMasses[0];
 	seqMasses[seqLen + 1] = siteModMasses[seqLen + 1];
 	for (size_t ii = 0; ii < seqLen; ii++) {
-		seqMasses[ii + 1] = massGetter(sequence[ii]) + siteModMasses[ii + 1];
+	    double residueMass;
+	    try {
+	        residueMass = massGetter(sequence[ii]);
+	    }
+	    catch (const std::out_of_range& ex) {
+	        throw std::out_of_range("Invalid residue detected: " + std::string(1, sequence[ii]));
+	    }
+		seqMasses[ii + 1] = residueMass + siteModMasses[ii + 1];
 	}
 
 	return seqMasses;

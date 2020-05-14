@@ -91,10 +91,14 @@ PyObject* python_calculateMass(PyObject* module, PyObject* args) {
             PyLong_AsLong(massType)
         ), &PyFloat_FromDouble);
 	}
+	catch (const std::out_of_range& ex) {
+	    PyErr_SetString(PyExc_KeyError, ex.what());
+	}
 	catch (const std::exception& ex) {
 	    PyErr_SetString(PyExc_RuntimeError, ex.what());
-        return NULL;
 	}
+
+	return NULL;
 };
 
 // Boilerplate code for C++ extension

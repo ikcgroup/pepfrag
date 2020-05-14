@@ -21,7 +21,7 @@ class TestPeptideMass(unittest.TestCase):
             [],
             mass_type=MassType.avg
         )
-        self.assertEqual(231.24, peptide.mass)
+        self.assertAlmostEqual(231.24, peptide.mass, 2)
 
     def test_peptide_mass_mono_nterm_mod(self):
         """
@@ -63,6 +63,15 @@ class TestPeptideMass(unittest.TestCase):
         )
         self.assertAlmostEqual(1536.70, peptide.mass, 2)
 
+    def test_invalid_residue(self):
+        """
+        Tests that invalid residues result in a KeyError.
+
+        """
+        peptide = Peptide('AUA', 2, [])
+        with self.assertRaisesRegex(KeyError, r'Invalid residue detected: U'):
+            mass = peptide.mass
+
 
 class TestPeptideFragmentation(unittest.TestCase):
     """
@@ -101,3 +110,8 @@ class TestPeptideFragmentation(unittest.TestCase):
             peptide.fragment(ion_types={
                 IonType.b: []
             })
+
+    def test_invalid_residue(self):
+        peptide = Peptide('AUA', 2, [])
+        with self.assertRaisesRegex(KeyError, r'Invalid residue detected: U'):
+            peptide.fragment()
