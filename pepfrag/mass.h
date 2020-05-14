@@ -11,6 +11,10 @@ struct ModMassSite {
 	ModMassSite(long _site, double _mass);
 };
 
-std::vector<double> calculateMass(const std::string& sequence, const std::vector<ModMassSite>& modSites);
+std::vector<double> calculateMass(
+    const std::string& sequence,
+    const std::vector<ModMassSite>& modSites,
+    long massType
+);
 
 #endif // _PEPFRAG_MASS_H
