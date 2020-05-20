@@ -5,7 +5,7 @@ import sys
 PACKAGE_DIR = "pepfrag"
 
 extra_compiler_args = []
-if sys.platform == "darwin":
+if sys.platform != "win32":
     extra_compiler_args.append("-std=c++14")
 
 
