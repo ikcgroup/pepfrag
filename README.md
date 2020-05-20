@@ -1,4 +1,7 @@
 # pepfrag
+
+![Python package](https://github.com/ikcgroup/pepfrag/workflows/Python%20package/badge.svg)
+
 pepfrag is a library for generating possible dissociation fragment ions of peptides
 in tandem mass spectrometry experiments.
 
