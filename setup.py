@@ -5,8 +5,10 @@ import sys
 PACKAGE_DIR = "pepfrag"
 
 extra_compiler_args = []
+extra_link_args = []
 if sys.platform != "win32":
     extra_compiler_args.append("-std=c++14")
+    extra_link_args.append("-lstdc++")
 
 
 cpepfrag = Extension(
@@ -18,7 +20,8 @@ cpepfrag = Extension(
         os.path.join(PACKAGE_DIR, "cpepfrag.cpp"),
     ],
     language="c++11",
-    extra_compile_args=extra_compiler_args
+    extra_compile_args=extra_compiler_args,
+    extra_link_args=extra_link_args
 )
 
 setup(
