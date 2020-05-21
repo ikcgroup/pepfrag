@@ -13,8 +13,7 @@ in tandem mass spectrometry experiments.
 
 # Installation
 
-Installation is currently a manual process; we will seek to publish the package to
-PyPI in the near future for easier install.
+`pepfrag` can be installed from [PyPI](https://pypi.org/project/pepfrag/).
 
 ### Compatibility
 
