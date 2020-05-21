@@ -13,8 +13,6 @@ in tandem mass spectrometry experiments.
 
 # Installation
 
-[(Back to top)](#table-of-contents)
-
 Installation is currently a manual process; we will seek to publish the package to
 PyPI in the near future for easier install.
 
@@ -31,15 +29,12 @@ presence of a C++ 11 compatible compiler on your machine.
 ### Instructions
 
 1. Install Python 3 (>= version 3.6).
-2. [Get the latest release](https://github.com/ikcgroup/pepfrag/releases) and 
-unzip `pepfrag`.
-4. Navigate to the unzipped `pepfrag` directory and execute 
-`python setup.py install` to compile the C/C++ extensions and install the
-`pepfrag` library in your Python packages.
+2. Install the latest version of the `pepfrag` library using `pip`:
+```shell script
+pip install pepfrag
+```
 
 # Usage
-
-[(Back to top)](#table-of-contents)
 
 ### `Peptide` Construction
 
@@ -109,6 +104,4 @@ The `fragment` method has two keyword parameters:
 
 # License
 
-[(Back to top)](#table-of-contents)
-
-`pepfrag` is released under the terms of the [MIT license](LICENSE).
+`pepfrag` is released under the terms of the [MIT license](https://github.com/ikcgroup/pepfrag/blob/master/LICENSE).

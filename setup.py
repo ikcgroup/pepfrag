@@ -1,6 +1,7 @@
-from distutils.core import setup, Extension
 import os
 import sys
+
+from setuptools import Extension, setup
 
 PACKAGE_DIR = "pepfrag"
 
@@ -9,6 +10,12 @@ extra_link_args = []
 if sys.platform != "win32":
     extra_compiler_args.append("-std=c++14")
     extra_link_args.append("-lstdc++")
+
+
+# Extract README.md
+readme = os.path.join(os.path.abspath(os.path.dirname(__file__)), "README.md")
+with open(readme, encoding='utf-8') as fh:
+    long_description = fh.read()
 
 
 cpepfrag = Extension(
@@ -26,7 +33,7 @@ cpepfrag = Extension(
 
 setup(
     name="pepfrag",
-    version="0.2.0",
+    version="0.2.1",
     packages=[
         "pepfrag",
     ],
@@ -52,4 +59,6 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8"
     ],
+    long_description_content_type='text/markdown',
+    long_description=long_description,
 )
