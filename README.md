@@ -31,7 +31,7 @@ presence of a C++ 11 compatible compiler on your machine.
 ### Instructions
 
 1. Install Python 3 (>= version 3.6).
-2. [Get the latest release](https://github.com/ikcgroup/rPTMValidation/releases) and 
+2. [Get the latest release](https://github.com/ikcgroup/pepfrag/releases) and 
 unzip `pepfrag`.
 4. Navigate to the unzipped `pepfrag` directory and execute 
 `python setup.py install` to compile the C/C++ extensions and install the

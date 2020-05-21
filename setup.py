@@ -26,11 +26,30 @@ cpepfrag = Extension(
 
 setup(
     name="pepfrag",
-    version="0.2",
+    version="0.2.0",
     packages=[
         "pepfrag",
     ],
+    license="MIT",
+    description="A library for peptide fragment ion generation",
+    author="Daniel Spencer",
+    author_email="danielspencer305@hotmail.co.uk",
+    url="https://github.com/ikcgroup/pepfrag",
+    keywords=[
+        "PEPTIDE",
+        "MASS SPECTROMETRY",
+        "PROTEOMICS"
+    ],
     ext_modules=[
         cpepfrag,
-    ]
+    ],
+    classifiers=[
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "Topic :: Scientific/Engineering :: Bio-Informatics",
+        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8"
+    ],
 )
