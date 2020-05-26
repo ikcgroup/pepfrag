@@ -21,6 +21,7 @@ in tandem mass spectrometry experiments.
 operating systems. The package has been tested on
 - Windows 10
 - MacOS 10.15
+- Ubuntu 18.04 LTS
 
 Because `pepfrag` includes C/C++ extensions, installation requires the 
 presence of a C++ 11 compatible compiler on your machine.
