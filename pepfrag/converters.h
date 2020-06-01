@@ -13,7 +13,9 @@ std::vector<double> listToDoubleVector(PyObject* source);
 
 std::vector<std::string> listToStringVector(PyObject* source);
 
-std::vector<std::pair<IonType, std::vector<std::string>>> dictToIonTypeMap(PyObject* source);
+using IonTypeMap = std::vector<std::pair<IonType, std::vector<std::pair<std::string, double>>>>;
+
+IonTypeMap dictToIonTypeMap(PyObject* source);
 
 std::vector<ModMassSite> modSiteListToVector(PyObject* source, size_t seqLen);
 

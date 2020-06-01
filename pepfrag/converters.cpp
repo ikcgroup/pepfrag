@@ -3,9 +3,12 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <functional>
 
 #include "converters.h"
 #include "ion.h"
+
+using PyObjectPredicate = std::function<bool(PyObject*)>;
 
 /*
 * Define type checks since these are macros in the CPython source
@@ -19,6 +22,10 @@ bool checkString(PyObject* obj) {
 	return PyUnicode_Check(obj);
 }
 
+bool checkTuple(PyObject* obj) {
+    return PyTuple_Check(obj);
+}
+
 std::string unicodeToString(PyObject* obj) {
 	return std::string(PyUnicode_AsUTF8(obj));
 }
@@ -26,7 +33,11 @@ std::string unicodeToString(PyObject* obj) {
 /* Python to C++ */
 
 template<class T>
-std::vector<T> listToVector(PyObject* source, bool(*check)(PyObject*), T(*convert)(PyObject*)) {
+std::vector<T> listToVector(
+        PyObject* source,
+        PyObjectPredicate check,
+        std::function<T(PyObject*)> convert
+) {
 	if (!PySequence_Check(source)) {
 		throw std::logic_error("PyObject pointer was not a sequence");
 	}
@@ -56,19 +67,60 @@ std::vector<std::string> listToStringVector(PyObject* source) {
 	return listToVector<std::string>(source, &checkString, &unicodeToString);
 }
 
-std::vector<std::pair<IonType, std::vector<std::string>>> dictToIonTypeMap(PyObject* source) {
+template<class T, class U>
+std::pair<T, U> tupleToPair(
+        PyObject* source,
+        PyObjectPredicate checkFirst,
+        PyObjectPredicate checkSecond,
+        std::function<T(PyObject*)> convertFirst,
+        std::function<U(PyObject*)> convertSecond
+) {
+	if (!PyTuple_Check(source)) {
+		throw std::logic_error("PyObject pointer was not a tuple");
+	}
+
+	long size = (long) PyTuple_Size(source);
+	if (size != 2) {
+	    throw std::logic_error("Invalid tuple length: " + std::to_string(size) + "for pair");
+	}
+
+	std::pair<T, U> data;
+
+	PyObject* firstValue = PyTuple_GetItem(source, 0);
+	if (checkFirst(firstValue)) {
+	    PyObject* secondValue = PyTuple_GetItem(source, 1);
+	    if (checkSecond(secondValue)) {
+	        data = std::make_pair(convertFirst(firstValue), convertSecond(secondValue));
+	    }
+	    else {
+            throw std::logic_error("Contained PyObject pointer was not expected type");
+        }
+	}
+	else {
+        throw std::logic_error("Contained PyObject pointer was not expected type");
+	}
+
+	return data;
+}
+
+IonTypeMap dictToIonTypeMap(PyObject* source) {
 	if (!PyDict_Check(source)) {
 		throw std::logic_error("PyObject pointer was not a dict");
 	}
 	
-	std::vector<std::pair<IonType, std::vector<std::string>>> types;
+	IonTypeMap types;
 	types.reserve((long) PyDict_Size(source));
 	PyObject *key, *value;
 	Py_ssize_t pos = 0;
 	while (PyDict_Next(source, &pos, &key, &value)) {
 		types.emplace_back(
 			static_cast<IonType>( PyLong_AsLong( key ) ),
-                        listToStringVector(value)
+            listToVector< std::pair<std::string, double> >(
+                value, &checkTuple,
+                [](PyObject* o) {
+                    return tupleToPair<std::string, double>(o, &checkString, &checkFloat, &unicodeToString, &PyFloat_AsDouble);
+                }
+            )
 		);
 	}
 	
