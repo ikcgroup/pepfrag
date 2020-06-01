@@ -1,6 +1,7 @@
 # pepfrag
 
 ![Python package](https://github.com/ikcgroup/pepfrag/workflows/Python%20package/badge.svg)
+[![Coverage Status](https://coveralls.io/repos/github/ikcgroup/pepfrag/badge.svg?branch=master)](https://coveralls.io/github/ikcgroup/pepfrag?branch=master)
 
 pepfrag is a library for generating possible dissociation fragment ions of peptides
 in tandem mass spectrometry experiments.
