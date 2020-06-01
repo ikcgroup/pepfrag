@@ -13,7 +13,7 @@ Ions generateIons(
 	IonType type,
 	const std::vector<double>& masses,
 	long charge,
-	const std::vector<std::string>& neutralLosses,
+	const std::vector<NeutralLossPair>& neutralLosses,
 	bool radical,
 	const std::string& sequence)
 {
@@ -31,7 +31,7 @@ PyObject* python_generateIons(PyObject* module, PyObject* args) {
 		if (!PyArg_ParseTuple(args, "OdOOOliO", &ionTypes, &precMass, &pySeqMasses, &bMassList,
 				      &yMassList, &charge, &radical, &pySequence)) return NULL;
 
-        std::vector< std::pair< IonType, std::vector< std::string > > > ionConfigs = dictToIonTypeMap(ionTypes);
+        IonTypeMap ionConfigs = dictToIonTypeMap(ionTypes);
 
         std::string sequence = PyUnicode_AsUTF8(pySequence);
 

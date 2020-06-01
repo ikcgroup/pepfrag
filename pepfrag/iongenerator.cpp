@@ -18,19 +18,19 @@ bool operator<(const Ion& left, const Ion& right)
 /* StringCache */
 
 class StringCache {
-        static std::unordered_map<long, std::string> cache;
+    static std::unordered_map<long, std::string> cache;
 
-        public:
+    public:
 
-                static std::string get(long n) {
-                        auto it = cache.find(n);
-                        if (it != cache.end()) {
-                                return it->second;
-                        }
-                        std::string entry = std::to_string(n);
-                        cache[n] = entry;
-                        return entry;
-                }
+        static std::string get(long n) {
+            auto it = cache.find(n);
+            if (it != cache.end()) {
+                return it->second;
+            }
+            std::string entry = std::to_string(n);
+            cache[n] = entry;
+            return entry;
+        }
 };
 
 std::unordered_map<long, std::string> StringCache::cache = std::unordered_map<long, std::string>();
@@ -62,7 +62,7 @@ IonGeneratorPtr IonGenerator::create(IonType type) {
 Ions IonGenerator::generate(
 	const std::vector<double>& masses,
 	long charge,
-	const std::vector<std::string>& neutralLosses,
+	const std::vector<NeutralLossPair>& neutralLosses,
 	bool radical,
 	const std::string& sequence) const
 {
@@ -113,9 +113,9 @@ void IonGenerator::generateNeutralLosses(
 	Ions& ions,
 	double mass,
 	long position,
-	const std::vector<std::string>& neutralLosses) const
+	const std::vector<NeutralLossPair>& neutralLosses) const
 {
-	for (const std::string& neutralLoss : neutralLosses) {
+	for (NeutralLossPair neutralLoss : neutralLosses) {
 		ions.push_back(generateNeutralLossIon(ionLabel, neutralLoss, mass, position));
 	}
 }
@@ -228,7 +228,7 @@ PrecursorIonGenerator::PrecursorIonGenerator() : IonGenerator("M") {}
 Ions PrecursorIonGenerator::generate(
 	const std::vector<double>& masses,
 	long charge,
-	const std::vector<std::string>& neutralLosses,
+	const std::vector<NeutralLossPair>& neutralLosses,
 	bool radical,
 	const std::string& sequence) const
 {
@@ -258,10 +258,10 @@ Ions PrecursorIonGenerator::generate(
 			);
 		}
 		
-		for (const std::string& neutralLoss : neutralLosses) {
+		for (NeutralLossPair neutralLoss : neutralLosses) {
 			ions.emplace_back(
-				(mass - FIXED_MASSES.at(neutralLoss)) / (double) cs + PROTON_MASS,
-				"[" + ionLabel + "-" + neutralLoss + "][" + chargeSymbol + "]",
+				(mass - neutralLoss.second) / (double) cs + PROTON_MASS,
+				"[" + ionLabel + "-" + neutralLoss.first + "][" + chargeSymbol + "]",
 				seqLen);
 		}
 	}
@@ -298,7 +298,7 @@ void PrecursorIonGenerator::generateNeutralLosses(
 	Ions& /*ions*/,
 	double /*mass*/,
 	long /*position*/,
-	const std::vector<std::string>& /*neutralLosses*/) const
+	const std::vector<NeutralLossPair>& /*neutralLosses*/) const
 {
 	// This method intentionally does nothing and should not be called
 	throw NotImplementedException();

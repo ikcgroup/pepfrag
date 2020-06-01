@@ -10,6 +10,8 @@
 
 #include "ion.h"
 
+using NeutralLossPair = std::pair<std::string, double>;
+
 const std::unordered_map<std::string, double> FIXED_MASSES = {
 	{"H", 1.007276466879},
 	{"tag", 304.20536},
@@ -50,7 +52,7 @@ class IonGenerator {
 		virtual Ions generate(
 			const std::vector<double>& masses,
 			long charge,
-			const std::vector<std::string>& neutralLosses,
+			const std::vector<NeutralLossPair>& neutralLosses,
 			bool radical,
 			const std::string& sequence) const;
 		
@@ -72,7 +74,7 @@ class IonGenerator {
 			Ions& ions,
 			double mass,
 			long position,
-			const std::vector<std::string>& neutralLosses) const;
+			const std::vector<NeutralLossPair>& neutralLosses) const;
 			
 		virtual double fixMass(double mass) const;
 };
@@ -182,7 +184,7 @@ class PrecursorIonGenerator : public IonGenerator
 		Ions generate(
 			const std::vector<double>& masses,
 			long charge,
-			const std::vector<std::string>& neutralLosses,
+			const std::vector<NeutralLossPair>& neutralLosses,
 			bool radical,
 			const std::string& sequence) const override;
 		
@@ -204,7 +206,7 @@ class PrecursorIonGenerator : public IonGenerator
 			Ions& ions,
 			double mass,
 			long position,
-			const std::vector<std::string>& neutralLosses) const override;
+			const std::vector<NeutralLossPair>& neutralLosses) const override;
 			
 		double fixMass(double mass) const override;
 };
@@ -213,13 +215,13 @@ void chargeIons(const Ions& sourceIons, Ions& target, long chargeState);
 
 inline Ion generateNeutralLossIon(
 	const std::string& typeChar,
-	const std::string& neutralLoss,
+	const NeutralLossPair neutralLoss,
 	double mass,
 	long position)
 {
 	return {
-		mass - FIXED_MASSES.at(neutralLoss),
-		"[" + typeChar + std::to_string(position + 1) + "-" + neutralLoss + "][+]",
+		mass - neutralLoss.second,
+		"[" + typeChar + std::to_string(position + 1) + "-" + neutralLoss.first + "][+]",
 		position + 1
 	};
 }
