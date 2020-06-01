@@ -34,9 +34,15 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Compile extension in place
+    - name: Compile extension in place (Linux)
+      run: |
+        # Include coverage flag for gcov coverage
+        CFLAGS="-coverage" python setup.py build_ext --inplace
+      if: matrix.os == 'ubuntu-latest'
+    - name: Compile extension in place (Windows)
       run: |
         python setup.py build_ext --inplace
+      if: matrix.os == 'windows-latest'
     - name: Test with pytest
       run: |
         pytest --cov=pepfrag --cov-report=xml
@@ -44,7 +50,6 @@ jobs:
       uses: codecov/codecov-action@v1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        file: ./coverage.xml
         flags: unittests
         env_vars: OS,PYTHON
         fail_ci_if_error: true
