@@ -115,3 +115,91 @@ class TestPeptideFragmentation(unittest.TestCase):
         peptide = Peptide('AUA', 2, [])
         with self.assertRaisesRegex(KeyError, r'Invalid residue detected: U'):
             peptide.fragment()
+
+
+class TestPeptides(unittest.TestCase):
+    def test_peptides_equal(self):
+        peptide = Peptide(
+            'ATSMPLK', 2,
+            [ModSite(23.01, 'nterm', 'testmod'), ModSite(19.24, 2, 'testmod2')]
+        )
+        peptide2 = Peptide(
+            'ATSMPLK', 2,
+            [ModSite(23.01, 'nterm', 'testmod'), ModSite(19.24, 2, 'testmod2')]
+        )
+        self.assertEqual(peptide, peptide2)
+
+    def test_peptides_not_equal_seq(self):
+        peptide = Peptide(
+            'ATSMPLK', 2,
+            [ModSite(23.01, 'nterm', 'testmod'), ModSite(19.24, 2, 'testmod2')]
+        )
+        peptide2 = Peptide(
+            'ATSYPLK', 2,
+            [ModSite(23.01, 'nterm', 'testmod'), ModSite(19.24, 2, 'testmod2')]
+        )
+        self.assertNotEqual(peptide, peptide2)
+
+    def test_peptides_not_equal_charge(self):
+        peptide = Peptide(
+            'ATSMPLK', 2,
+            [ModSite(23.01, 'nterm', 'testmod'), ModSite(19.24, 2, 'testmod2')]
+        )
+        peptide2 = Peptide(
+            'ATSMPLK', 3,
+            [ModSite(23.01, 'nterm', 'testmod'), ModSite(19.24, 2, 'testmod2')]
+        )
+        self.assertNotEqual(peptide, peptide2)
+
+    def test_peptides_not_equal_mods(self):
+        peptide = Peptide(
+            'ATSMPLK', 2,
+            [ModSite(23.01, 'nterm', 'testmod'), ModSite(19.24, 2, 'testmod2')]
+        )
+        peptide2 = Peptide(
+            'ATSMPLK', 3,
+            [ModSite(23.01, 'nterm', 'testmod')]
+        )
+        self.assertNotEqual(peptide, peptide2)
+
+    def test_peptides_not_equal_non_instance(self):
+        peptide = Peptide(
+            'ATSMPLK', 2,
+            [ModSite(23.01, 'nterm', 'testmod'), ModSite(19.24, 2, 'testmod2')]
+        )
+        self.assertNotEqual(peptide, ('ATSMPLK', 2))
+
+    def test_peptide_str(self):
+        peptide = Peptide(
+            'ATSMPLK', 2,
+            [ModSite(23.01, 'nterm', 'testmod'), ModSite(19.24, 2, 'testmod2')]
+        )
+        expected_str = \
+            "<Peptide {'seq': 'ATSMPLK', 'charge': 2, 'mods': " \
+            "[ModSite(mass=23.01, site='nterm', mod='testmod'), " \
+            "ModSite(mass=19.24, site=2, mod='testmod2')], 'mass_type': " \
+            "<MassType.mono: 0>, 'radical': False, 'fragment_ions': '0 ions'}>"
+        self.assertEqual(expected_str, str(peptide))
+
+    def test_peptide_repr(self):
+        peptide = Peptide(
+            'ATSMPLK', 2,
+            [ModSite(23.01, 'nterm', 'testmod'), ModSite(19.24, 2, 'testmod2')]
+        )
+        expected_repr = \
+            "<Peptide {'_seq': 'ATSMPLK', '_charge': 2, '_mods': " \
+            "[ModSite(mass=23.01, site='nterm', mod='testmod'), "\
+            "ModSite(mass=19.24, site=2, mod='testmod2')], 'mass_type': "\
+            "<MassType.mono: 0>, 'radical': False, 'fragment_ions': None}>"
+        self.assertEqual(expected_repr, repr(peptide))
+
+    def test_peptides_equal_hash(self):
+        peptide = Peptide(
+            'ATSMPLK', 2,
+            [ModSite(23.01, 'nterm', 'testmod'), ModSite(19.24, 2, 'testmod2')]
+        )
+        peptide2 = Peptide(
+            'ATSMPLK', 2,
+            [ModSite(23.01, 'nterm', 'testmod'), ModSite(19.24, 2, 'testmod2')]
+        )
+        self.assertEqual(hash(peptide), hash(peptide2))

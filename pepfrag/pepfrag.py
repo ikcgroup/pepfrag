@@ -216,7 +216,7 @@ class Peptide:
 
         """
         if not isinstance(other, Peptide):
-            raise NotImplementedError()
+            return NotImplemented
         return (self.seq, self.charge, self.mods) == \
                (other.seq, other.charge, other.mods)
 
