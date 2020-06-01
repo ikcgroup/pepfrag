@@ -103,6 +103,20 @@ class TestPeptideFragmentation(unittest.TestCase):
             all(ion.startswith('b') for _, ion, _ in peptide.fragment_ions)
         )
 
+    def test_all_ion_types(self):
+        peptide = Peptide('AAAMLPK', 2, [])
+        peptide.fragment(ion_types={
+            IonType.b.value: [],
+            IonType.y.value: [],
+            IonType.a.value: [],
+            IonType.c.value: [],
+            IonType.z.value: [],
+            IonType.precursor.value: [],
+            IonType.imm.value: []
+        })
+
+        self.assertIsNotNone(peptide.fragment_ions)
+
     def test_invalid_ion_types(self):
         peptide = Peptide('AAA', 2, [])
         with self.assertRaises(RuntimeError):
@@ -115,6 +129,20 @@ class TestPeptideFragmentation(unittest.TestCase):
         peptide = Peptide('AUA', 2, [])
         with self.assertRaisesRegex(KeyError, r'Invalid residue detected: U'):
             peptide.fragment()
+
+    def test_radical(self):
+        peptide = Peptide('AAA', 2, [], radical=True)
+        peptide.fragment(ion_types={
+            IonType.b.value: [],
+            IonType.y.value: [],
+            IonType.a.value: [],
+            IonType.c.value: [],
+            IonType.z.value: [],
+            IonType.precursor.value: [],
+            IonType.imm.value: []
+        })
+
+        self.assertIsNotNone(peptide.fragment_ions)
 
 
 class TestPeptides(unittest.TestCase):
