@@ -36,17 +36,19 @@ class IonType(enum.Enum):
     z = 7
 
 
-IonTypesDict = Dict[int, List[Union[str, Tuple[str, float]]]]
+IonTypesDict = Dict[IonType, List[Union[str, Tuple[str, float]]]]
+# The dictionary format to be passed to the C++ extension
+CIonTypesDict = Dict[int, List[Tuple[str, float]]]
 
 
 DEFAULT_IONS: IonTypesDict = {
-    IonType.precursor.value: ["H2O", "NH3", "CO2"],
-    IonType.imm.value: [],
-    IonType.b.value: ["H2O", "NH3", "CO"],
-    IonType.y.value: ["NH3", "H2O"],
-    IonType.a.value: [],
-    IonType.c.value: [],
-    IonType.z.value: []
+    IonType.precursor: ["H2O", "NH3", "CO2"],
+    IonType.imm: [],
+    IonType.b: ["H2O", "NH3", "CO"],
+    IonType.y: ["NH3", "H2O"],
+    IonType.a: [],
+    IonType.c: [],
+    IonType.z: []
 }
 
 
@@ -57,18 +59,20 @@ AA_TYPE_MASSES = {
 }
 
 
-def reformat_loss_strings(ion_types: IonTypesDict):
+def reformat_ion_types(ion_types: IonTypesDict) -> CIonTypesDict:
     """
-    Converts string neutral losses in `ion_types` to tuples of the string label
-    and the mass.
-
-    Note that this modifies the input dictionary in-place.
+    Reformats the `ion_types` dictionary to convert string neutral losses to
+    tuples and use the integer value of the IonType enumeration.
 
     Args:
         ion_types: The selected ion type dictionary.
 
+    Returns:
+        Reformatted ion type dictionary.
+
     """
-    for losses in ion_types.values():
+    new_ion_types = {}
+    for ion_type, losses in ion_types.items():
         for i, loss in enumerate(losses):
             if isinstance(loss, str):
                 try:
@@ -78,6 +82,8 @@ def reformat_loss_strings(ion_types: IonTypesDict):
                         f'Unknown neutral loss: {loss}. Consider using the mass'
                         'directly.'
                     )
+        new_ion_types[ion_type.value] = losses
+    return new_ion_types
 
 
 class UnknownModificationSite(Exception):
@@ -280,7 +286,7 @@ class Peptide:
         if ion_types is None:
             ion_types = DEFAULT_IONS
 
-        reformat_loss_strings(ion_types)
+        ion_types = reformat_ion_types(ion_types)
 
         # If fragment_ions already exists or force=False, use the cached ions
         if self.fragment_ions is None or force:
@@ -291,7 +297,7 @@ class Peptide:
 
     def _fragment(
             self,
-            ion_types: Dict[int, List[Tuple[str, float]]]
+            ion_types: CIonTypesDict
     ) -> List[Ion]:
         """
         Fragments the peptide to generate the ion types specified.
