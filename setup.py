@@ -33,7 +33,7 @@ cpepfrag = Extension(
 
 setup(
     name="pepfrag",
-    version="0.2.1",
+    version="0.2.2",
     packages=[
         "pepfrag",
     ],
