@@ -38,7 +38,7 @@ jobs:
       run: |
         # Include coverage flag for gcov coverage
         CFLAGS="-coverage" python setup.py build_ext --inplace
-      if: matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
     - name: Compile extension in place (Windows)
       run: |
         python setup.py build_ext --inplace
