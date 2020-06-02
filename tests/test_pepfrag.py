@@ -1,6 +1,8 @@
 import unittest
 
-from pepfrag import IonType, MassType, ModSite, Peptide
+from pepfrag.pepfrag import (
+    IonType, MassType, ModSite, Peptide, reformat_ion_types
+)
 
 
 class TestPeptideMass(unittest.TestCase):
@@ -73,6 +75,26 @@ class TestPeptideMass(unittest.TestCase):
             mass = peptide.mass
 
 
+class TestReformatIonTypeDictionary(unittest.TestCase):
+    """
+    Tests for the reformat_ion_types function.
+
+    """
+    def test(self):
+        ion_types = {
+            IonType.b: ['NH3', ('testmod', 19.)],
+            IonType.precursor: [('testmod2', 101.), 'H2O']
+        }
+
+        expected_ion_types = {
+            IonType.b.value: [('NH3', 17.02654910112), ('testmod', 19.)],
+            IonType.precursor.value: [('testmod2', 101.),
+                                      ('H2O', 18.01056468403)]
+        }
+
+        self.assertEqual(expected_ion_types, reformat_ion_types(ion_types))
+
+
 class TestPeptideFragmentation(unittest.TestCase):
     """
     Tests for the pepfrag.Peptide class, focusing on fragmentation.
@@ -95,7 +117,7 @@ class TestPeptideFragmentation(unittest.TestCase):
     def test_custom_ion_types(self):
         peptide = Peptide('AAA', 2, [])
         peptide.fragment(ion_types={
-            IonType.b.value: []
+            IonType.b: []
         })
 
         self.assertIsNotNone(peptide.fragment_ions)
@@ -106,24 +128,16 @@ class TestPeptideFragmentation(unittest.TestCase):
     def test_all_ion_types(self):
         peptide = Peptide('AAAMLPK', 2, [])
         peptide.fragment(ion_types={
-            IonType.b.value: [],
-            IonType.y.value: [],
-            IonType.a.value: [],
-            IonType.c.value: [],
-            IonType.z.value: [],
-            IonType.precursor.value: [],
-            IonType.imm.value: []
+            IonType.b: [],
+            IonType.y: [],
+            IonType.a: [],
+            IonType.c: [],
+            IonType.z: [],
+            IonType.precursor: [],
+            IonType.imm: []
         })
 
         self.assertIsNotNone(peptide.fragment_ions)
-
-    def test_invalid_ion_types(self):
-        peptide = Peptide('AAA', 2, [])
-        with self.assertRaises(RuntimeError):
-            # noinspection PyTypeChecker
-            peptide.fragment(ion_types={
-                IonType.b: []
-            })
 
     def test_invalid_residue(self):
         peptide = Peptide('AUA', 2, [])
@@ -133,9 +147,9 @@ class TestPeptideFragmentation(unittest.TestCase):
     def test_neutral_losses(self):
         peptide = Peptide('AAAK', 2, [])
         peptide.fragment(ion_types={
-            IonType.b.value: ['NH3', ('testLoss', 9.)],
-            IonType.precursor.value: ['CO2', ('testLoss2', 13.)],
-            IonType.imm.value: [('testLoss3', 2.04), 'H2O']
+            IonType.b: ['NH3', ('testLoss', 9.)],
+            IonType.precursor: ['CO2', ('testLoss2', 13.)],
+            IonType.imm: [('testLoss3', 2.04), 'H2O']
         })
 
         expected_ions = {
@@ -179,19 +193,19 @@ class TestPeptideFragmentation(unittest.TestCase):
         peptide = Peptide('AAAK', 2, [])
         with self.assertRaises(KeyError):
             peptide.fragment(ion_types={
-                IonType.b.value: ['test']
+                IonType.b: ['test']
             })
 
     def test_radical(self):
         peptide = Peptide('AAA', 2, [], radical=True)
         peptide.fragment(ion_types={
-            IonType.b.value: [],
-            IonType.y.value: [],
-            IonType.a.value: [],
-            IonType.c.value: [],
-            IonType.z.value: [],
-            IonType.precursor.value: [],
-            IonType.imm.value: []
+            IonType.b: [],
+            IonType.y: [],
+            IonType.a: [],
+            IonType.c: [],
+            IonType.z: [],
+            IonType.precursor: [],
+            IonType.imm: []
         })
 
         self.assertIsNotNone(peptide.fragment_ions)
