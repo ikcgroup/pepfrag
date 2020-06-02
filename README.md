@@ -83,21 +83,35 @@ The `fragment` method has two keyword parameters:
 - `ion_types`:
     - Description: The types of fragment ion species to generate. The default
     setup would generate precursor, immonium, b, y, a, c and z ions.
-    - Type: dictionary mapping `IonType` values to possible neutral loss species.
+    - Type: dictionary mapping `IonType` enumeration instances to possible 
+    neutral loss species, represented as strings for the most common neutral losses
+    (i.e. those configured in `pepfrag`, namely `'H2O'`, `'NH3'`, `'CO2'` and `'CO'`).
+    For additional losses, these can be input as tuples of 
+    `(name (str), mass (float))`.
     - Default: 
     ```python
   from pepfrag import IonType
 
   DEFAULT_IONS = {
-        IonType.precursor.value: ["H2O", "NH3", "CO2"],
-        IonType.imm.value: [],
-        IonType.b.value: ["H2O", "NH3", "CO"],
-        IonType.y.value: ["NH3", "H2O"],
-        IonType.a.value: [],
-        IonType.c.value: [],
-        IonType.z.value: []
+        IonType.precursor: ['H2O', 'NH3', 'CO2'],
+        IonType.imm: [],
+        IonType.b: ['H2O', 'NH3', 'CO'],
+        IonType.y: ['NH3', 'H2O'],
+        IonType.a: [],
+        IonType.c: [],
+        IonType.z: []
   }
     ```
+  - Example:
+  ```python
+  from pepfrag import IonType, Peptide
+  
+  peptide = Peptide('APYSMLK', 2, [])
+  
+  peptide.fragment(ion_types={
+      IonType.b: ['NH3', ('customLoss', 17.04)]
+  })
+  ```
 - `force`:
     - Description: Flag indicating whether fragments should be forcibly regenerated,
     *i.e.* bypassing the cached ions.
