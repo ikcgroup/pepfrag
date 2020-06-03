@@ -1,7 +1,7 @@
 import unittest
 
 from pepfrag.pepfrag import (
-    IonType, MassType, ModSite, Peptide, reformat_ion_types
+    IonType, MassType, ModSite, Peptide, _reformat_ion_types
 )
 
 
@@ -92,7 +92,7 @@ class TestReformatIonTypeDictionary(unittest.TestCase):
                                       ('H2O', 18.01056468403)]
         }
 
-        self.assertEqual(expected_ion_types, reformat_ion_types(ion_types))
+        self.assertEqual(expected_ion_types, _reformat_ion_types(ion_types))
 
 
 class TestPeptideFragmentation(unittest.TestCase):

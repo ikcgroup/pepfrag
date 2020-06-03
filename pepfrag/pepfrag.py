@@ -6,7 +6,7 @@ generate theoretical ions useful for annotating mass spectra (MSn).
 """
 from __future__ import annotations
 
-import collections
+import dataclasses
 import enum
 from typing import Dict, List, Optional, Sequence, Tuple, Union
 
@@ -17,23 +17,36 @@ from .constants import AA_MASSES, FIXED_MASSES, MassType
 
 Ion = Tuple[float, str, int]
 
-PeptideMass = collections.namedtuple("PeptideMass", ["nterm", "seq", "cterm"])
 
-ModSite = collections.namedtuple("ModSite", ["mass", "site", "mod"])
+@dataclasses.dataclass(frozen=True)
+class ModSite:
+    """
+    Class representing an instance of `mod_name` at position `site`.
+
+    Args:
+        mass: Mass of the modification.
+        site: Position of the modification. Integer for sequence position,
+              'nterm' for N-terminus or 'cterm' for C-terminus.
+        mod: Name of the modification.
+
+    """
+    mass: float
+    site: Union[int, str]
+    mod: str
 
 
 class IonType(enum.Enum):
     """
-    An enumeration of possible fragment ion types
+    Enumeration of possible fragment ion types.
 
     """
-    precursor = 1
-    imm = 2
-    b = 3
-    y = 4
-    a = 5
-    c = 6
-    z = 7
+    precursor = 1  #: Precursor ions
+    imm = 2  #: Immonium ions
+    b = 3  #: b-type ions
+    y = 4  #: y-type ions
+    a = 5  #: a-type ions
+    c = 6  #: c-type ions
+    z = 7  #: z-type ions
 
 
 IonTypesDict = Dict[IonType, List[Union[str, Tuple[str, float]]]]
@@ -59,7 +72,7 @@ AA_TYPE_MASSES = {
 }
 
 
-def reformat_ion_types(ion_types: IonTypesDict) -> CIonTypesDict:
+def _reformat_ion_types(ion_types: IonTypesDict) -> CIonTypesDict:
     """
     Reformats the `ion_types` dictionary to convert string neutral losses to
     tuples and use the integer value of the IonType enumeration.
@@ -100,6 +113,11 @@ class Peptide:
     modifications, including PTMs and quantitative tags. The class should be
     used to fragment the peptides for mass spectrum annotation.
 
+    Attributes:
+        mass_type: Type of masses used in calculations (see :class:`MassType`).
+        radical: Flag indicating whether the peptide is a radical peptide.
+        fragment_ions: Cache of generated fragment ions.
+
     """
 
     __slots__ = ("_seq", "_charge", "_mods", "mass_type", "radical",
@@ -120,7 +138,8 @@ class Peptide:
             sequence: The peptide sequence (single character format).
             charge: The charge state of the peptide.
             modifications: The modifications applied to the peptide.
-            mass_type: The type of masses used in calculations (see MassType).
+            mass_type: The type of masses used in calculations
+                       (see :class:`MassType`).
             radical: Flag indicating whether the peptide is a radical peptide.
                      This flag influences the ion candidates generated during
                      fragmentation.
@@ -129,15 +148,15 @@ class Peptide:
         self.seq = sequence
         self.charge = charge
         self.mods = modifications
-        self.mass_type = mass_type
-        self.radical = radical
+        self.mass_type: MassType = mass_type
+        self.radical: bool = radical
 
         self.fragment_ions: Optional[List[Ion]] = None
 
     @property
     def seq(self) -> str:
         """
-        Returns the peptide sequence.
+        Peptide amino acid sequence.
 
         """
         return self._seq
@@ -145,7 +164,7 @@ class Peptide:
     @seq.setter
     def seq(self, seq: str):
         """
-        Sets the sequence and clears the fragment_ions.
+        Sets the sequence and clears the cached fragment ions.
 
         """
         self.clean_fragment_ions()
@@ -154,7 +173,7 @@ class Peptide:
     @property
     def charge(self) -> int:
         """
-        Returns the peptide charge.
+        Peptide charge state.
 
         """
         return self._charge
@@ -162,16 +181,16 @@ class Peptide:
     @charge.setter
     def charge(self, charge: int):
         """
-        Sets the charge and clears the fragment_ions.
+        Sets the charge and clears the ``fragment_ions``.
 
         """
         self.clean_fragment_ions()
         self._charge = charge
 
     @property
-    def mods(self) -> List:
+    def mods(self) -> List[ModSite]:
         """
-        Returns the list of ModSites.
+        Peptide modifications.
 
         """
         return self._mods
@@ -186,9 +205,14 @@ class Peptide:
         self._mods = mods
 
     @property
-    def peptide_mass(self) -> PeptideMass:
+    def peptide_mass(self) -> List[float]:
         """
-        Returns the mass of the peptide, including modifications.
+        The mass of the peptide along the sequence, with each position
+        calculated separately.
+
+        Note:
+            In the returned list, index 0 is the N-terminus mass, while index -1
+            is the C-terminus mass.
 
         """
         return self.calculate_mass()
@@ -196,7 +220,7 @@ class Peptide:
     @property
     def mass(self) -> float:
         """
-        Returns the mass of the peptide, including modifications, as a float.
+        Total mass of the peptide, including modifications.
 
         """
         pep_mass = self.peptide_mass
@@ -208,7 +232,7 @@ class Peptide:
         Constructs the official representation of the Peptide object.
 
         Returns:
-            string: Official representation of the Peptide object.
+            Official representation of the Peptide object.
 
         """
         out = {s: getattr(self, s) for s in self.__class__.__slots__}
@@ -219,7 +243,7 @@ class Peptide:
         Constructs the string representation of the Peptide object.
 
         Returns:
-            string.
+            String representation.
 
         """
         num_ions = (
@@ -254,21 +278,26 @@ class Peptide:
 
     def clean_fragment_ions(self):
         """
-        Cleans the cached fragment ions.
+        Cleans the cached :obj:`~fragment_ions`.
 
         """
         self.fragment_ions = None
 
-    def calculate_mass(self) -> PeptideMass:
+    def calculate_mass(self) -> List[float]:
         """
-        Calculates the theoretical mass of the peptide, including
-        any modifications.
+        Calculates the theoretical mass of the peptide along the sequence,
+        including any modifications.
 
         Returns:
-            PeptideMass
+            Masses along the peptide sequence. Index 0 is the N-terminus mass,
+            while index -1 is the C-terminus mass.
 
         """
-        return calculate_mass(self.seq, self.mods, self.mass_type.value)
+        return calculate_mass(
+            self.seq,
+            [dataclasses.astuple(ms) for ms in self.mods],
+            self.mass_type.value
+        )
 
     def fragment(
             self,
@@ -279,14 +308,20 @@ class Peptide:
         Fragments the peptide to generate the ion types specified.
 
         Args:
-            ion_types:
+            ion_types: Dictionary of :class:`IonType` s to list of configured
+                       neutral losses. Only fragments for :class:`IonType` s
+                       specified here will be generated.
             force: Force re-fragmentation of the peptide.
+
+        Returns:
+            List of generated ions, as tuples of `(fragment mass, ion label,
+            sequence position)`.
 
         """
         if ion_types is None:
             ion_types = DEFAULT_IONS
 
-        ion_types = reformat_ion_types(ion_types)
+        ion_types = _reformat_ion_types(ion_types)
 
         # If fragment_ions already exists or force=False, use the cached ions
         if self.fragment_ions is None or force:
@@ -315,7 +350,8 @@ class Peptide:
             y_masses,
             self.charge,
             self.radical,
-            self.seq)
+            self.seq
+        )
 
     def _ion_masses(self) -> Tuple[List[float], List[float]]:
         """

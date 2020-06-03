@@ -3,7 +3,7 @@
 A module to define some constants used throughout peptide processing.
 
 """
-import collections
+import dataclasses
 import enum
 from typing import Dict
 
@@ -17,11 +17,23 @@ class MassType(enum.Enum):
     calculate_mass.
 
     """
-    mono = 0
-    avg = 1
+    mono = 0  #: Monoisotopic mass
+    avg = 1  #: Average mass
 
 
-Mass = collections.namedtuple('Mass', ['mono', 'avg'])
+@dataclasses.dataclass
+class Mass:
+    """
+    Represents a mass pair of monoisotopic and average masses.
+
+    Args:
+        mono: Monoisotopic mass.
+        avg: Average mass.
+
+    """
+    mono: float
+    avg: float
+
 
 AA_MASSES: Dict[str, Mass] = {
     'G': Mass(57.02146372069, 57.051402191402),
