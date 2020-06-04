@@ -109,7 +109,7 @@ For example:
     from pepfrag import IonType
 
     ion_types = {
-        IonType.b: [('testLoss1', 17.04), 'NH3]
+        IonType.b: [('testLoss1', 17.04), 'NH3']
     }
 
 This would generate `b` ions, along with `b-testLoss1` and `b-NH3` fragment ions.
