@@ -15,8 +15,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        python-version: [3.7, 3.8]
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
+        python-version: [ 3.7, 3.8 ]
 
     steps:
     - uses: actions/checkout@v2
@@ -27,7 +27,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install flake8 pytest pytest-cov coverage==4.5.4
+        pip install flake8 pytest pytest-cov coverage
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
@@ -38,7 +38,7 @@ jobs:
       run: |
         # Include coverage flag for gcov coverage
         CFLAGS="-coverage" python setup.py build_ext --inplace
-      if: matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
     - name: Compile extension in place (Windows)
       run: |
         python setup.py build_ext --inplace
