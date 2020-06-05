@@ -321,6 +321,7 @@ class Peptide:
         if ion_types is None:
             ion_types = DEFAULT_IONS
 
+
         ion_types = _reformat_ion_types(ion_types)
 
         # If fragment_ions already exists or force=False, use the cached ions

@@ -92,6 +92,7 @@ class TestReformatIonTypeDictionary(unittest.TestCase):
                                       ('H2O', 18.01056468403)]
         }
 
+
         self.assertEqual(expected_ion_types, _reformat_ion_types(ion_types))
 
 
