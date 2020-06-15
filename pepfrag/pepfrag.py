@@ -227,6 +227,14 @@ class Peptide:
         mass = sum(pep_mass) + FIXED_MASSES["H2O"]
         return mass
 
+    @property
+    def mz(self) -> float:
+        """
+        Calculates the mass-to-charge ratio of the peptide.
+
+        """
+        return (self.mass / self.charge) + FIXED_MASSES["H"]
+
     def __repr__(self) -> str:
         """
         Constructs the official representation of the Peptide object.
