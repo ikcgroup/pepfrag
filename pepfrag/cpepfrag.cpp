@@ -52,6 +52,7 @@ PyObject* python_generateIons(PyObject* module, PyObject* args) {
                     break;
                 case IonType::y:
                 case IonType::z:
+                case IonType::x:
                     massList = &yMasses;
                     break;
                 case IonType::immonium:
