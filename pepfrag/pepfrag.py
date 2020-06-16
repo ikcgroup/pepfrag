@@ -47,6 +47,7 @@ class IonType(enum.Enum):
     a = 5  #: a-type ions
     c = 6  #: c-type ions
     z = 7  #: z-type ions
+    x = 8  #: x-type ions
 
 
 IonTypesDict = Dict[IonType, List[Union[str, Tuple[str, float]]]]
@@ -61,7 +62,8 @@ DEFAULT_IONS: IonTypesDict = {
     IonType.y: ["NH3", "H2O"],
     IonType.a: [],
     IonType.c: [],
-    IonType.z: []
+    IonType.z: [],
+    IonType.x: []
 }
 
 
@@ -328,7 +330,6 @@ class Peptide:
         """
         if ion_types is None:
             ion_types = DEFAULT_IONS
-
 
         ion_types = _reformat_ion_types(ion_types)
 

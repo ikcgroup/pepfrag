@@ -12,7 +12,8 @@ enum class IonType {
 	y = 4,
 	a = 5,
 	c = 6,
-	z = 7
+	z = 7,
+	x = 8
 };
 
 // Forward declaration
