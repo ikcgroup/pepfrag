@@ -19,6 +19,7 @@ class TestPeptideMass(unittest.TestCase):
         """Tests that the calculated mono mass is correct."""
         peptide = Peptide('AAA', 2, [])
         self.assertAlmostEqual(231.12, peptide.mass, 2)
+        self.assertAlmostEqual(116.57, peptide.mz, 2)
 
     def test_peptide_mass_avg_no_mods(self):
         """Tests that the calculated average mass is correct."""
@@ -29,6 +30,7 @@ class TestPeptideMass(unittest.TestCase):
             mass_type=MassType.avg
         )
         self.assertAlmostEqual(231.24, peptide.mass, 2)
+        self.assertAlmostEqual(116.63, peptide.mz, 2)
 
     def test_peptide_mass_mono_nterm_mod(self):
         """
@@ -41,6 +43,7 @@ class TestPeptideMass(unittest.TestCase):
             [ModSite(304.20536, 'nterm', 'iTRAQ8plex')]
         )
         self.assertAlmostEqual(535.33, peptide.mass, 2)
+        self.assertAlmostEqual(268.67, peptide.mz, 2)
 
     def test_peptide_mass_mono_cterm_mod(self):
         """
@@ -49,6 +52,7 @@ class TestPeptideMass(unittest.TestCase):
         """
         peptide = Peptide('AAA', 2, [ModSite(21.981943, 'cterm', 'Cation:Na')])
         self.assertAlmostEqual(253.10, peptide.mass, 2)
+        self.assertAlmostEqual(127.56, peptide.mz, 2)
 
     def test_peptide_multiple_mods(self):
         """
@@ -69,6 +73,7 @@ class TestPeptideMass(unittest.TestCase):
             ]
         )
         self.assertAlmostEqual(1536.70, peptide.mass, 2)
+        self.assertAlmostEqual(513.24, peptide.mz, 2)
 
     def test_invalid_residue(self):
         """
@@ -96,7 +101,6 @@ class TestReformatIonTypeDictionary(unittest.TestCase):
             IonType.precursor.value: [('testmod2', 101.),
                                       ('H2O', 18.01056468403)]
         }
-
 
         self.assertEqual(expected_ion_types, _reformat_ion_types(ion_types))
 
