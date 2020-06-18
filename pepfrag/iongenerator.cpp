@@ -51,6 +51,8 @@ IonGeneratorPtr IonGenerator::create(IonType type) {
 			return std::make_shared<CIonGenerator>(CIonGenerator());
 		case IonType::z:
 			return std::make_shared<ZIonGenerator>(ZIonGenerator());
+		case IonType::x:
+		    return std::make_shared<XIonGenerator>(XIonGenerator());
 		case IonType::precursor:
 			return std::make_shared<PrecursorIonGenerator>(PrecursorIonGenerator());
 		case IonType::immonium:
@@ -182,7 +184,7 @@ void CIonGenerator::generateRadicalIons(Ions& ions, double mass, long position) 
 }
 
 double CIonGenerator::fixMass(double mass) const {
-	return mass + 3 * PROTON_MASS + FIXED_MASSES.at("N");
+	return mass + 4 * PROTON_MASS + FIXED_MASSES.at("N");
 }
 
 /* ZIonGenerator */
@@ -198,7 +200,23 @@ void ZIonGenerator::generateRadicalIons(Ions& ions, double mass, long position) 
 }
 
 double ZIonGenerator::fixMass(double mass) const {
-	return mass - FIXED_MASSES.at("N") - 3 * PROTON_MASS;
+	return mass - FIXED_MASSES.at("N") - 1 * PROTON_MASS;
+}
+
+/* XIonGenerator */
+
+XIonGenerator::XIonGenerator() : IonGenerator("x") {}
+
+void XIonGenerator::generateRadicalIons(Ions& ions, double mass, long position) const {
+    ions.emplace_back(
+		mass,
+		"[" + ionLabel + StringCache::get(position + 1) + "-H[•+]",
+		position + 1
+	);
+}
+
+double XIonGenerator::fixMass(double mass) const {
+    return mass + FIXED_MASSES.at("CO") - PROTON_MASS;
 }
 
 /* ImmoniumIonGenerator */

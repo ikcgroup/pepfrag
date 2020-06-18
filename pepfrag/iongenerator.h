@@ -155,6 +155,22 @@ class ZIonGenerator : public IonGenerator
 		double fixMass(double mass) const override;
 };
 
+class XIonGenerator : public IonGenerator
+{
+	public:
+		XIonGenerator();
+
+		~XIonGenerator() override = default;
+
+	private:
+		void generateRadicalIons(
+			Ions& ions,
+			double mass,
+			long position) const override;
+
+		double fixMass(double mass) const override;
+};
+
 class ImmoniumIonGenerator : public IonGenerator
 {
 	public:

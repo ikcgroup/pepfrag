@@ -35,8 +35,9 @@ std::string unicodeToString(PyObject* obj) {
 template<class T>
 std::vector<T> listToVector(
         PyObject* source,
-        PyObjectPredicate check,
-        std::function<T(PyObject*)> convert
+        const PyObjectPredicate& check,
+        const std::function<T(PyObject*)>& convert,
+        const std::string& pythonType
 ) {
 	if (!PySequence_Check(source)) {
 		throw std::logic_error("PyObject pointer was not a sequence");
@@ -52,7 +53,7 @@ std::vector<T> listToVector(
 		}
 		else {
 			Py_DECREF(value);
-			throw std::logic_error("Contained PyObject pointer was not expected type");
+			throw std::logic_error("Contained PyObject pointer was not expected type: " + pythonType);
 		}
 		Py_DECREF(value);
 	}
@@ -60,20 +61,22 @@ std::vector<T> listToVector(
 }
 
 std::vector<double> listToDoubleVector(PyObject* source) {
-	return listToVector<double>(source, &checkFloat, &PyFloat_AsDouble);
+	return listToVector<double>(source, &checkFloat, &PyFloat_AsDouble, "float");
 }
 
 std::vector<std::string> listToStringVector(PyObject* source) {
-	return listToVector<std::string>(source, &checkString, &unicodeToString);
+	return listToVector<std::string>(source, &checkString, &unicodeToString, "string");
 }
 
 template<class T, class U>
 std::pair<T, U> tupleToPair(
         PyObject* source,
-        PyObjectPredicate checkFirst,
-        PyObjectPredicate checkSecond,
-        std::function<T(PyObject*)> convertFirst,
-        std::function<U(PyObject*)> convertSecond
+        const PyObjectPredicate& checkFirst,
+        const PyObjectPredicate& checkSecond,
+        const std::function<T(PyObject*)>& convertFirst,
+        const std::function<U(PyObject*)>& convertSecond,
+        const std::string& pythonTypeFirst,
+        const std::string& pythonTypeSecond
 ) {
 	if (!PyTuple_Check(source)) {
 		throw std::logic_error("PyObject pointer was not a tuple");
@@ -93,11 +96,11 @@ std::pair<T, U> tupleToPair(
 	        data = std::make_pair(convertFirst(firstValue), convertSecond(secondValue));
 	    }
 	    else {
-            throw std::logic_error("Contained PyObject pointer was not expected type");
+            throw std::logic_error("Contained PyObject pointer was not expected type: " + pythonTypeSecond);
         }
 	}
 	else {
-        throw std::logic_error("Contained PyObject pointer was not expected type");
+        throw std::logic_error("Contained PyObject pointer was not expected type: " + pythonTypeFirst);
 	}
 
 	return data;
@@ -118,8 +121,9 @@ IonTypeMap dictToIonTypeMap(PyObject* source) {
             listToVector< std::pair<std::string, double> >(
                 value, &checkTuple,
                 [](PyObject* o) {
-                    return tupleToPair<std::string, double>(o, &checkString, &checkFloat, &unicodeToString, &PyFloat_AsDouble);
-                }
+                    return tupleToPair<std::string, double>(o, &checkString, &checkFloat, &unicodeToString, &PyFloat_AsDouble, "string", "float");
+                },
+                "tuple"
             )
 		);
 	}
