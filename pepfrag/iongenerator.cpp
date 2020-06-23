@@ -35,6 +35,8 @@ class StringCache {
 
 std::unordered_map<long, std::string> StringCache::cache = std::unordered_map<long, std::string>();
 
+const std::string RADICAL = "•";
+
 /* IonGenerator */
 
 IonGenerator::IonGenerator(const std::string& label) : ionLabel(label) {}
@@ -137,7 +139,7 @@ BIonGenerator::BIonGenerator() : SimpleIonGenerator("b") {}
 void BIonGenerator::generateRadicalIons(Ions& ions, double mass, long position) const {
 	ions.emplace_back(
 		mass,
-		"[" + ionLabel + StringCache::get(position + 1) + "-H[•+]",
+		"[" + ionLabel + StringCache::get(position + 1) + "-H[" + RADICAL + "+]",
 		position + 1
 	);
 }
@@ -161,12 +163,12 @@ AIonGenerator::AIonGenerator() : SimpleIonGenerator("a") {}
 void AIonGenerator::generateRadicalIons(Ions& ions, double mass, long position) const {
 	ions.emplace_back(
 		mass - PROTON_MASS,
-		"[" + ionLabel + StringCache::get(position + 1) + "-H][•+]",
+		"[" + ionLabel + StringCache::get(position + 1) + "-H][" + RADICAL + "+]",
 		position + 1
 	);
 	ions.emplace_back(
 		mass + PROTON_MASS,
-		"[" + ionLabel + StringCache::get(position + 1) + "+H][•+]",
+		"[" + ionLabel + StringCache::get(position + 1) + "+H][" + RADICAL + "+]",
 		position + 1
 	);
 }
@@ -182,7 +184,7 @@ CIonGenerator::CIonGenerator() : SimpleIonGenerator("c") {}
 void CIonGenerator::generateRadicalIons(Ions& ions, double mass, long position) const {
 	ions.emplace_back(
 		mass + 2 * PROTON_MASS,
-		"[" + ionLabel + StringCache::get(position + 1) + "+2H][•+]",
+		"[" + ionLabel + StringCache::get(position + 1) + "+2H][" + RADICAL + "+]",
 		position + 1
 	);
 }
@@ -198,7 +200,7 @@ ZIonGenerator::ZIonGenerator() : SimpleIonGenerator("z") {}
 void ZIonGenerator::generateRadicalIons(Ions& ions, double mass, long position) const {
 	ions.emplace_back(
 		mass - PROTON_MASS,
-		"[" + ionLabel + StringCache::get(position + 1) + "-H][•+]",
+		"[" + ionLabel + StringCache::get(position + 1) + "-H][" + RADICAL + "+]",
 		position + 1
 	);
 }
@@ -214,7 +216,7 @@ XIonGenerator::XIonGenerator() : SimpleIonGenerator("x") {}
 void XIonGenerator::generateRadicalIons(Ions& ions, double mass, long position) const {
     ions.emplace_back(
 		mass,
-		"[" + ionLabel + StringCache::get(position + 1) + "-H[•+]",
+		"[" + ionLabel + StringCache::get(position + 1) + "-H[" + RADICAL + "+]",
 		position + 1
 	);
 }
@@ -264,7 +266,7 @@ Ions PrecursorIonGenerator::generate(
 	long seqLen = (long) sequence.size();
 	
 	for (long cs = 1; cs < charge + 1; cs++) {
-		std::string chargeSymbol = (radical ? "•" : "") + (cs > 1 ? StringCache::get(cs) : "") + "+";
+		std::string chargeSymbol = (radical ? RADICAL : "") + (cs > 1 ? StringCache::get(cs) : "") + "+";
 		
 		ions.emplace_back(
 			(mass / (double) cs) + PROTON_MASS,
