@@ -35,6 +35,8 @@ class StringCache {
 
 std::unordered_map<long, std::string> StringCache::cache = std::unordered_map<long, std::string>();
 
+const std::string RADICAL = "•";
+
 /* IonGenerator */
 
 IonGenerator::IonGenerator(const std::string& label) : ionLabel(label) {}
@@ -61,7 +63,11 @@ IonGeneratorPtr IonGenerator::create(IonType type) {
 	return NULL;
 }
 
-Ions IonGenerator::generate(
+/* SimpleIonGenerator */
+
+SimpleIonGenerator::SimpleIonGenerator(const std::string& label) : IonGenerator(label) {};
+
+Ions SimpleIonGenerator::generate(
 	const std::vector<double>& masses,
 	long charge,
 	const std::vector<NeutralLossPair>& neutralLosses,
@@ -100,18 +106,18 @@ Ions IonGenerator::generate(
 	return chargedIons;
 }
 
-std::pair<int, int> IonGenerator::preProcessMasses(const std::vector<double>& masses) const {
+std::pair<int, int> SimpleIonGenerator::preProcessMasses(const std::vector<double>& masses) const {
 	return std::make_pair(0, masses.size() - 1);
 }
 
-Ion IonGenerator::generateBaseIon(double mass, long position, const std::string& /*sequence*/) const {
+Ion SimpleIonGenerator::generateBaseIon(double mass, long position, const std::string& /*sequence*/) const {
 	return {mass, ionLabel + StringCache::get(position + 1) + "[+]", position + 1};
 }
 
-void IonGenerator::generateRadicalIons(Ions& ions, double mass, long position) const {
+void SimpleIonGenerator::generateRadicalIons(Ions& ions, double mass, long position) const {
 }
 
-void IonGenerator::generateNeutralLosses(
+void SimpleIonGenerator::generateNeutralLosses(
 	Ions& ions,
 	double mass,
 	long position,
@@ -122,18 +128,18 @@ void IonGenerator::generateNeutralLosses(
 	}
 }
 
-double IonGenerator::fixMass(double mass) const {
+double SimpleIonGenerator::fixMass(double mass) const {
 	return mass;
 }
 
 /* BIonGenerator */
 
-BIonGenerator::BIonGenerator() : IonGenerator("b") {}
+BIonGenerator::BIonGenerator() : SimpleIonGenerator("b") {}
 
 void BIonGenerator::generateRadicalIons(Ions& ions, double mass, long position) const {
 	ions.emplace_back(
 		mass,
-		"[" + ionLabel + StringCache::get(position + 1) + "-H[•+]",
+		"[" + ionLabel + StringCache::get(position + 1) + "-H[" + RADICAL + "+]",
 		position + 1
 	);
 }
@@ -144,7 +150,7 @@ double BIonGenerator::fixMass(double mass) const {
 
 /* YIonGenerator */
 
-YIonGenerator::YIonGenerator() : IonGenerator("y") {}
+YIonGenerator::YIonGenerator() : SimpleIonGenerator("y") {}
 
 double YIonGenerator::fixMass(double mass) const {
 	return mass + PROTON_MASS;
@@ -152,17 +158,17 @@ double YIonGenerator::fixMass(double mass) const {
 
 /* AIonGenerator */
 
-AIonGenerator::AIonGenerator() : IonGenerator("a") {}
+AIonGenerator::AIonGenerator() : SimpleIonGenerator("a") {}
 
 void AIonGenerator::generateRadicalIons(Ions& ions, double mass, long position) const {
 	ions.emplace_back(
 		mass - PROTON_MASS,
-		"[" + ionLabel + StringCache::get(position + 1) + "-H][•+]",
+		"[" + ionLabel + StringCache::get(position + 1) + "-H][" + RADICAL + "+]",
 		position + 1
 	);
 	ions.emplace_back(
 		mass + PROTON_MASS,
-		"[" + ionLabel + StringCache::get(position + 1) + "+H][•+]",
+		"[" + ionLabel + StringCache::get(position + 1) + "+H][" + RADICAL + "+]",
 		position + 1
 	);
 }
@@ -173,12 +179,12 @@ double AIonGenerator::fixMass(double mass) const {
 
 /* CIonGenerator */
 
-CIonGenerator::CIonGenerator() : IonGenerator("c") {}
+CIonGenerator::CIonGenerator() : SimpleIonGenerator("c") {}
 
 void CIonGenerator::generateRadicalIons(Ions& ions, double mass, long position) const {
 	ions.emplace_back(
 		mass + 2 * PROTON_MASS,
-		"[" + ionLabel + StringCache::get(position + 1) + "+2H][•+]",
+		"[" + ionLabel + StringCache::get(position + 1) + "+2H][" + RADICAL + "+]",
 		position + 1
 	);
 }
@@ -189,12 +195,12 @@ double CIonGenerator::fixMass(double mass) const {
 
 /* ZIonGenerator */
 
-ZIonGenerator::ZIonGenerator() : IonGenerator("z") {}
+ZIonGenerator::ZIonGenerator() : SimpleIonGenerator("z") {}
 
 void ZIonGenerator::generateRadicalIons(Ions& ions, double mass, long position) const {
 	ions.emplace_back(
 		mass - PROTON_MASS,
-		"[" + ionLabel + StringCache::get(position + 1) + "-H][•+]",
+		"[" + ionLabel + StringCache::get(position + 1) + "-H][" + RADICAL + "+]",
 		position + 1
 	);
 }
@@ -205,12 +211,12 @@ double ZIonGenerator::fixMass(double mass) const {
 
 /* XIonGenerator */
 
-XIonGenerator::XIonGenerator() : IonGenerator("x") {}
+XIonGenerator::XIonGenerator() : SimpleIonGenerator("x") {}
 
 void XIonGenerator::generateRadicalIons(Ions& ions, double mass, long position) const {
     ions.emplace_back(
 		mass,
-		"[" + ionLabel + StringCache::get(position + 1) + "-H[•+]",
+		"[" + ionLabel + StringCache::get(position + 1) + "-H[" + RADICAL + "+]",
 		position + 1
 	);
 }
@@ -221,7 +227,7 @@ double XIonGenerator::fixMass(double mass) const {
 
 /* ImmoniumIonGenerator */
 
-ImmoniumIonGenerator::ImmoniumIonGenerator() : IonGenerator("imm") {}
+ImmoniumIonGenerator::ImmoniumIonGenerator() : SimpleIonGenerator("imm") {}
 
 std::pair<int, int> ImmoniumIonGenerator::preProcessMasses(const std::vector<double>& masses) const {
 	return std::make_pair(0, masses.size());
@@ -260,7 +266,7 @@ Ions PrecursorIonGenerator::generate(
 	long seqLen = (long) sequence.size();
 	
 	for (long cs = 1; cs < charge + 1; cs++) {
-		std::string chargeSymbol = (radical ? "•" : "") + (cs > 1 ? StringCache::get(cs) : "") + "+";
+		std::string chargeSymbol = (radical ? RADICAL : "") + (cs > 1 ? StringCache::get(cs) : "") + "+";
 		
 		ions.emplace_back(
 			(mass / (double) cs) + PROTON_MASS,
@@ -285,46 +291,6 @@ Ions PrecursorIonGenerator::generate(
 	}
 	
 	return ions;
-}
-
-std::pair<int, int> PrecursorIonGenerator::preProcessMasses(
-	const std::vector<double>& /*masses*/) const
-{
-	// This method intentionally does nothing and should not be called
-	throw NotImplementedException();
-}
-	
-Ion PrecursorIonGenerator::generateBaseIon(
-	double /*mass*/,
-	long /*position*/,
-	const std::string& /*sequence*/) const
-{
-	// This method intentionally does nothing and should not be called
-	throw NotImplementedException();
-}
-	
-void PrecursorIonGenerator::generateRadicalIons(
-	Ions& /*ions*/,
-	double /*mass*/,
-	long /*position*/) const 
-{
-	// This method intentionally does nothing and should not be called
-	throw NotImplementedException();
-}
-
-void PrecursorIonGenerator::generateNeutralLosses(
-	Ions& /*ions*/,
-	double /*mass*/,
-	long /*position*/,
-	const std::vector<NeutralLossPair>& /*neutralLosses*/) const
-{
-	// This method intentionally does nothing and should not be called
-	throw NotImplementedException();
-}
-
-double PrecursorIonGenerator::fixMass(double /*mass*/) const {
-	// This method intentionally does nothing and should not be called
-	throw NotImplementedException();
 }
 
 /* Utility functions */

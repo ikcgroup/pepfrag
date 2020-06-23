@@ -2,7 +2,6 @@
 #define _PEPFRAG_IONGENERATOR_H
 
 #include <memory>
-#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -25,37 +24,45 @@ const std::unordered_map<std::string, double> FIXED_MASSES = {
 
 const double PROTON_MASS = FIXED_MASSES.at("H");
 
-struct NotImplementedException : public std::exception
-{
-	const char* what () const throw ()
-    {
-    	return "Method not implemented";
-    }
-};
-
 // Forward declaration
 class IonGenerator;
 
 using IonGeneratorPtr = std::shared_ptr<IonGenerator>;
 
 class IonGenerator {
-	protected:
-		const std::string ionLabel;
-	
-	public:
-		explicit IonGenerator(const std::string& label);
+    protected:
+        const std::string ionLabel;
 
-		virtual ~IonGenerator() {};
-		
-		static IonGeneratorPtr create(IonType type);
-	
-		virtual Ions generate(
-			const std::vector<double>& masses,
-			long charge,
-			const std::vector<NeutralLossPair>& neutralLosses,
-			bool radical,
-			const std::string& sequence) const;
-		
+    public:
+        explicit IonGenerator(const std::string& label);
+
+        virtual ~IonGenerator() {};
+
+        static IonGeneratorPtr create(IonType type);
+
+        virtual Ions generate(
+            const std::vector<double>& masses,
+            long charge,
+            const std::vector<NeutralLossPair>& neutralLosses,
+            bool radical,
+            const std::string& sequence) const = 0;
+};
+
+/*
+ * This class implements a version of the generate method with behaviour
+ * customized by the defined private methods for each subclass.
+ */
+class SimpleIonGenerator : public IonGenerator {
+    public:
+        explicit SimpleIonGenerator(const std::string& label);
+
+        virtual Ions generate(
+            const std::vector<double>& masses,
+            long charge,
+            const std::vector<NeutralLossPair>& neutralLosses,
+            bool radical,
+            const std::string& sequence) const override;
+
 	private:
 		virtual std::pair<int, int> preProcessMasses(
 			const std::vector<double>& masses) const;
@@ -79,7 +86,7 @@ class IonGenerator {
 		virtual double fixMass(double mass) const;
 };
 
-class BIonGenerator : public IonGenerator
+class BIonGenerator : public SimpleIonGenerator
 {
 	public:
 		BIonGenerator();
@@ -95,7 +102,7 @@ class BIonGenerator : public IonGenerator
 		double fixMass(double mass) const override;
 };
 
-class YIonGenerator : public IonGenerator
+class YIonGenerator : public SimpleIonGenerator
 {
 	public:
 		YIonGenerator();
@@ -107,7 +114,7 @@ class YIonGenerator : public IonGenerator
 		double fixMass(double mass) const override;
 };
 
-class AIonGenerator : public IonGenerator
+class AIonGenerator : public SimpleIonGenerator
 {
 	public:
 		AIonGenerator();
@@ -123,7 +130,7 @@ class AIonGenerator : public IonGenerator
 		double fixMass(double mass) const override;
 };
 
-class CIonGenerator : public IonGenerator
+class CIonGenerator : public SimpleIonGenerator
 {
 	public:
 		CIonGenerator();
@@ -139,7 +146,7 @@ class CIonGenerator : public IonGenerator
 		double fixMass(double mass) const override;
 };
 
-class ZIonGenerator : public IonGenerator
+class ZIonGenerator : public SimpleIonGenerator
 {
 	public:
 		ZIonGenerator();
@@ -155,7 +162,7 @@ class ZIonGenerator : public IonGenerator
 		double fixMass(double mass) const override;
 };
 
-class XIonGenerator : public IonGenerator
+class XIonGenerator : public SimpleIonGenerator
 {
 	public:
 		XIonGenerator();
@@ -171,7 +178,7 @@ class XIonGenerator : public IonGenerator
 		double fixMass(double mass) const override;
 };
 
-class ImmoniumIonGenerator : public IonGenerator
+class ImmoniumIonGenerator : public SimpleIonGenerator
 {
 	public:
 		ImmoniumIonGenerator();
@@ -203,28 +210,6 @@ class PrecursorIonGenerator : public IonGenerator
 			const std::vector<NeutralLossPair>& neutralLosses,
 			bool radical,
 			const std::string& sequence) const override;
-		
-	private:
-		std::pair<int, int> preProcessMasses(
-			const std::vector<double>& masses) const override;
-	
-		Ion generateBaseIon(
-			double mass,
-			long position,
-			const std::string& sequence) const override;
-			
-		void generateRadicalIons(
-			Ions& ions,
-			double mass,
-			long position) const override;
-			
-		void generateNeutralLosses(
-			Ions& ions,
-			double mass,
-			long position,
-			const std::vector<NeutralLossPair>& neutralLosses) const override;
-			
-		double fixMass(double mass) const override;
 };
 
 void chargeIons(const Ions& sourceIons, Ions& target, long chargeState);

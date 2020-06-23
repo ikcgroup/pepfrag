@@ -10,6 +10,8 @@ extra_link_args = []
 if sys.platform != "win32":
     extra_compiler_args.append("-std=c++14")
     extra_link_args.append("-lstdc++")
+if sys.platform == "win32":
+    extra_compiler_args.append("/utf-8")
 
 
 # Extract README.md

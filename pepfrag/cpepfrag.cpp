@@ -1,5 +1,6 @@
 #include <Python.h>
 #include <string>
+#include <stdexcept>
 #include <unordered_map>
 #include <vector>
 
