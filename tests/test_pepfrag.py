@@ -84,6 +84,15 @@ class TestPeptideMass(unittest.TestCase):
         with self.assertRaisesRegex(KeyError, r'Invalid residue detected: U'):
             mass = peptide.mass
 
+    def test_mod_site_out_of_range(self):
+        """
+        Tests behaviour when a modification has a site beyond the peptide's
+        length.
+
+        """
+        peptide = Peptide('ALPK', 2, [ModSite(1000., 100, 'TestMod')])
+        self.assertAlmostEqual(427.28, peptide.mass, 2)
+
 
 class TestReformatIonTypeDictionary(unittest.TestCase):
     """
