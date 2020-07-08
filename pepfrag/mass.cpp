@@ -1,4 +1,5 @@
 #include <functional>
+#include <map>
 #include <unordered_map>
 #include <stdexcept>
 #include <string>
@@ -38,24 +39,21 @@ const std::vector< std::function<double(char)> > GET_MASS_FUNCTIONS{
 ModMassSite::ModMassSite(long _site, double _mass)
 	: site(_site), mass(_mass) {}
 
-// TODO: in just one loop
 std::vector<double> calculateMass(
     const std::string& sequence,
-    const std::vector<ModMassSite>& modSites,
+    const std::map<long, double>& modSiteMasses,
     long massType
 ) {
     auto massGetter = GET_MASS_FUNCTIONS[massType];
 
-	// Position 0 is the N-term mass, Position sequence.size() + 1 is the C-term mass
 	size_t seqLen = sequence.size();
-	std::vector<double> siteModMasses(seqLen + 2, 0);
-	for (const ModMassSite& modSite : modSites) {
-		siteModMasses[modSite.site] += modSite.mass;
-	}
 
 	std::vector<double> seqMasses(seqLen + 2);
-	seqMasses[0] = siteModMasses[0];
-	seqMasses[seqLen + 1] = siteModMasses[seqLen + 1];
+	// Position 0 is the N-term mass, Position sequence.size() + 1 is the C-term mass
+	auto it = modSiteMasses.find(0);
+	seqMasses[0] = it != modSiteMasses.end() ? it->second : 0;
+    it = modSiteMasses.find(seqLen + 1);
+    seqMasses[seqLen + 1] = it != modSiteMasses.end() ? it->second : 0;
 	for (size_t ii = 0; ii < seqLen; ii++) {
 	    double residueMass;
 	    try {
@@ -64,7 +62,12 @@ std::vector<double> calculateMass(
 	    catch (const std::out_of_range& ex) {
 	        throw std::out_of_range("Invalid residue detected: " + std::string(1, sequence[ii]));
 	    }
-		seqMasses[ii + 1] = residueMass + siteModMasses[ii + 1];
+		seqMasses[ii + 1] = residueMass;
+
+		it = modSiteMasses.find(ii + 1);
+		if (it != modSiteMasses.end()) {
+		    seqMasses[ii + 1] += it->second;
+		}
 	}
 
 	return seqMasses;

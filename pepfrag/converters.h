@@ -5,6 +5,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <map>
 
 #include "ion.h"
 #include "mass.h"
@@ -17,7 +18,7 @@ using IonTypeMap = std::vector<std::pair<IonType, std::vector<std::pair<std::str
 
 IonTypeMap dictToIonTypeMap(PyObject* source);
 
-std::vector<ModMassSite> modSiteListToVector(PyObject* source, size_t seqLen);
+std::map<long, double> modSiteListToMap(PyObject* source, size_t seqLen);
 
 /* C++ to Python */
 

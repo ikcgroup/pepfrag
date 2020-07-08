@@ -4,6 +4,7 @@
 #include <utility>
 #include <vector>
 #include <functional>
+#include <map>
 
 #include "converters.h"
 #include "ion.h"
@@ -131,15 +132,14 @@ IonTypeMap dictToIonTypeMap(PyObject* source) {
 	return types;
 }
 
-std::vector<ModMassSite> modSiteListToVector(PyObject* source, size_t seqLen) {
+std::map<long, double> modSiteListToMap(PyObject* source, size_t seqLen) {
 	if (!PySequence_Check(source)) {
 		throw std::logic_error("PyObject pointer was not a sequence");
 	}
 
 	Py_ssize_t size = PySequence_Size(source);
 
-	std::vector<ModMassSite> modSites;
-	modSites.reserve(size);
+	std::map<long, double> modSiteMasses;
 
 	for (Py_ssize_t ii = 0; ii < size; ii++) {
 		PyObject* tuple = PySequence_GetItem(source, ii);
@@ -159,13 +159,13 @@ std::vector<ModMassSite> modSiteListToVector(PyObject* source, size_t seqLen) {
 			siteIdx = (siteStr == "N-term" || siteStr == "nterm") ? 0 : seqLen + 1;
 		}
 
-		modSites.emplace_back(
-			siteIdx,
-			PyFloat_AsDouble(PyTuple_GET_ITEM(tuple, 0))
+		modSiteMasses.emplace(
+		    siteIdx,
+		    PyFloat_AsDouble(PyTuple_GET_ITEM(tuple, 0))
 		);
 
 		Py_DECREF(tuple);
 	}
 
-	return modSites;
+	return modSiteMasses;
 }
