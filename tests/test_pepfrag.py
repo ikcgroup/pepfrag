@@ -126,32 +126,23 @@ class TestPeptideFragmentation(unittest.TestCase):
 
     def test_basic(self):
         peptide = Peptide('AAA', 2, [])
-        peptide.fragment()
-        self.assertIsNotNone(peptide.fragment_ions)
-        peptide.clean_fragment_ions()
-        self.assertIsNone(peptide.fragment_ions)
-
-    def test_fragment_invalidation(self):
-        peptide = Peptide('AAA', 2, [])
-        peptide.fragment()
-        self.assertIsNotNone(peptide.fragment_ions)
-        peptide.seq = 'AA'
-        self.assertIsNone(peptide.fragment_ions)
+        ions = peptide.fragment()
+        self.assertIsNotNone(ions)
 
     def test_custom_ion_types(self):
         peptide = Peptide('AAA', 2, [])
-        peptide.fragment(ion_types={
+        ions = peptide.fragment(ion_types={
             IonType.b: []
         })
 
-        self.assertIsNotNone(peptide.fragment_ions)
+        self.assertIsNotNone(ions)
         self.assertTrue(
-            all(ion.startswith('b') for _, ion, _ in peptide.fragment_ions)
+            all(ion.startswith('b') for _, ion, _ in ions)
         )
 
     def test_all_ion_types(self):
         peptide = Peptide('AAAMLPK', 2, [])
-        peptide.fragment(ion_types={
+        ions = peptide.fragment(ion_types={
             IonType.b: [],
             IonType.y: [],
             IonType.a: [],
@@ -161,73 +152,73 @@ class TestPeptideFragmentation(unittest.TestCase):
             IonType.imm: []
         })
 
-        self.assertIsNotNone(peptide.fragment_ions)
+        self.assertIsNotNone(ions)
 
     def test_a_ions(self):
         peptide = Peptide('AFCWK', 1, [])
-        peptide.fragment(ion_types={IonType.a: []})
+        ions = peptide.fragment(ion_types={IonType.a: []})
         expected = {
             'a1[+]': 44.0495,
             'a2[+]': 191.1179,
             'a3[+]': 294.1271,
             'a4[+]': 480.2064,
         }
-        self._test_ions(expected, ions_to_dict(peptide.fragment_ions))
+        self._test_ions(expected, ions_to_dict(ions))
 
     def test_b_ions(self):
         peptide = Peptide('AFCWK', 1, [])
-        peptide.fragment(ion_types={IonType.b: []})
+        ions = peptide.fragment(ion_types={IonType.b: []})
         expected = {
             'b1[+]': 72.0444,
             'b2[+]': 219.1128,
             'b3[+]': 322.1220,
             'b4[+]': 508.2013,
         }
-        self._test_ions(expected, ions_to_dict(peptide.fragment_ions))
+        self._test_ions(expected, ions_to_dict(ions))
 
     def test_c_ions(self):
         peptide = Peptide('AFCWK', 1, [])
-        peptide.fragment(ion_types={IonType.c: []})
+        ions = peptide.fragment(ion_types={IonType.c: []})
         expected = {
             'c1[+]': 89.0709,
             'c2[+]': 236.1394,
             'c3[+]': 339.1485,
             'c4[+]': 525.2279,
         }
-        self._test_ions(expected, ions_to_dict(peptide.fragment_ions))
+        self._test_ions(expected, ions_to_dict(ions))
 
     def test_x_ions(self):
         peptide = Peptide('AFCWK', 1, [])
-        peptide.fragment(ion_types={IonType.x: []})
+        ions = peptide.fragment(ion_types={IonType.x: []})
         expected = {
             'x1[+]': 173.0921,
             'x2[+]': 359.1714,
             'x3[+]': 462.1806,
             'x4[+]': 609.2490,
         }
-        self._test_ions(expected, ions_to_dict(peptide.fragment_ions))
+        self._test_ions(expected, ions_to_dict(ions))
 
     def test_y_ions(self):
         peptide = Peptide('AFCWK', 1, [])
-        peptide.fragment(ion_types={IonType.y: []})
+        ions = peptide.fragment(ion_types={IonType.y: []})
         expected = {
             'y1[+]': 147.1128,
             'y2[+]': 333.1921,
             'y3[+]': 436.2013,
             'y4[+]': 583.2697,
         }
-        self._test_ions(expected, ions_to_dict(peptide.fragment_ions))
+        self._test_ions(expected, ions_to_dict(ions))
 
     def test_z_ions(self):
         peptide = Peptide('AFCWK', 1, [])
-        peptide.fragment(ion_types={IonType.z: []})
+        ions = peptide.fragment(ion_types={IonType.z: []})
         expected = {
             'z1[+]': 131.0941,
             'z2[+]': 317.1734,
             'z3[+]': 420.1826,
             'z4[+]': 567.2510,
         }
-        self._test_ions(expected, ions_to_dict(peptide.fragment_ions))
+        self._test_ions(expected, ions_to_dict(ions))
 
     def test_invalid_residue(self):
         peptide = Peptide('AUA', 2, [])
@@ -236,7 +227,7 @@ class TestPeptideFragmentation(unittest.TestCase):
 
     def test_neutral_losses(self):
         peptide = Peptide('AAAK', 2, [])
-        peptide.fragment(ion_types={
+        ions = peptide.fragment(ion_types={
             IonType.b: ['NH3', ('testLoss', 9.)],
             IonType.precursor: ['CO2', ('testLoss2', 13.)],
             IonType.imm: [('testLoss3', 2.04), 'H2O']
@@ -277,7 +268,7 @@ class TestPeptideFragmentation(unittest.TestCase):
              (42.052018322674, '[imm4-H2O][2+]', 4)
         }
 
-        self.assertEqual(expected_ions, set(peptide.fragment_ions))
+        self.assertEqual(expected_ions, set(ions))
 
     def test_unknown_string_neutral_loss(self):
         peptide = Peptide('AAAK', 2, [])
@@ -288,7 +279,7 @@ class TestPeptideFragmentation(unittest.TestCase):
 
     def test_radical(self):
         peptide = Peptide('AAA', 2, [], radical=True)
-        peptide.fragment(ion_types={
+        ions = peptide.fragment(ion_types={
             IonType.b: [],
             IonType.y: [],
             IonType.a: [],
@@ -298,7 +289,7 @@ class TestPeptideFragmentation(unittest.TestCase):
             IonType.imm: []
         })
 
-        self.assertIsNotNone(peptide.fragment_ions)
+        self.assertIsNotNone(ions)
 
 
 class TestPeptides(unittest.TestCase):
@@ -362,7 +353,7 @@ class TestPeptides(unittest.TestCase):
             "<Peptide {'seq': 'ATSMPLK', 'charge': 2, 'mods': " \
             "[ModSite(mass=23.01, site='nterm', mod='testmod'), " \
             "ModSite(mass=19.24, site=2, mod='testmod2')], 'mass_type': " \
-            "<MassType.mono: 0>, 'radical': False, 'fragment_ions': '0 ions'}>"
+            "<MassType.mono: 0>, 'radical': False}>"
         self.assertEqual(expected_str, str(peptide))
 
     def test_peptide_repr(self):
@@ -371,10 +362,10 @@ class TestPeptides(unittest.TestCase):
             [ModSite(23.01, 'nterm', 'testmod'), ModSite(19.24, 2, 'testmod2')]
         )
         expected_repr = \
-            "<Peptide {'_seq': 'ATSMPLK', '_charge': 2, '_mods': " \
+            "<Peptide {'seq': 'ATSMPLK', 'charge': 2, 'mods': " \
             "[ModSite(mass=23.01, site='nterm', mod='testmod'), "\
             "ModSite(mass=19.24, site=2, mod='testmod2')], 'mass_type': "\
-            "<MassType.mono: 0>, 'radical': False, 'fragment_ions': None}>"
+            "<MassType.mono: 0>, 'radical': False}>"
         self.assertEqual(expected_repr, repr(peptide))
 
     def test_peptides_equal_hash(self):
