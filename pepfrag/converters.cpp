@@ -142,13 +142,8 @@ std::map<long, double> modSiteListToMap(PyObject* source, size_t seqLen) {
 	std::map<long, double> modSiteMasses;
 
 	for (Py_ssize_t ii = 0; ii < size; ii++) {
-		PyObject* tuple = PySequence_GetItem(source, ii);
-
-		if (!PyTuple_Check(tuple)) {
-			throw std::logic_error("PyObject pointer was not a tuple");
-		}
-
-		PyObject* site = PyTuple_GET_ITEM(tuple, 1);
+		PyObject* modSite = PySequence_GetItem(source, ii);
+		PyObject* site = PyObject_GetAttrString(modSite, "site");
 
 		long siteIdx;
 		if (PyLong_Check(site)) {
@@ -159,12 +154,16 @@ std::map<long, double> modSiteListToMap(PyObject* source, size_t seqLen) {
 			siteIdx = (siteStr == "N-term" || siteStr == "nterm") ? 0 : seqLen + 1;
 		}
 
+		PyObject* modMass = PyObject_GetAttrString(modSite, "mass");
+
 		modSiteMasses.emplace(
 		    siteIdx,
-		    PyFloat_AsDouble(PyTuple_GET_ITEM(tuple, 0))
+		    PyFloat_AsDouble(modMass)
 		);
 
-		Py_DECREF(tuple);
+        Py_DECREF(site);
+        Py_DECREF(modMass);
+		Py_DECREF(modSite);
 	}
 
 	return modSiteMasses;

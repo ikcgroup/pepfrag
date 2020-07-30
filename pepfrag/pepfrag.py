@@ -239,7 +239,7 @@ class Peptide:
         """
         return calculate_mass(
             self.seq,
-            [dataclasses.astuple(ms) for ms in self.mods],
+            self.mods,
             self.mass_type.value
         )
 
