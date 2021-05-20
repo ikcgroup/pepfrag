@@ -1,6 +1,8 @@
 import unittest
 from typing import Dict, List, Tuple
 
+import numpy as np
+
 from pepfrag.pepfrag import (
     IonType, MassType, ModSite, Peptide, _reformat_ion_types
 )
@@ -129,6 +131,21 @@ class TestPeptideFragmentation(unittest.TestCase):
         ions = peptide.fragment()
         self.assertIsNotNone(ions)
 
+    def test_basic_numpy(self):
+        peptide = Peptide('AAA', np.int32(2), [])
+        ions = peptide.fragment()
+        self.assertIsNotNone(ions)
+
+    def test_basic_mod(self):
+        peptide = Peptide('AAYK', 2, [ModSite(1., 2, 'testmod')])
+        ions = peptide.fragment()
+        self.assertIsNotNone(ions)
+
+    def test_basic_mod_numpy(self):
+        peptide = Peptide('AAYK', 2, [ModSite(1., np.int32(2), 'testmod')])
+        with self.assertRaisesRegex(RuntimeError, r'Modification site was not an integer or a string'):
+            peptide.fragment()
+
     def test_custom_ion_types(self):
         peptide = Peptide('AAA', 2, [])
         ions = peptide.fragment(ion_types={
@@ -235,37 +252,37 @@ class TestPeptideFragmentation(unittest.TestCase):
 
         expected_ions = {
             (44.049475632459, 'imm(A)', 0),
-             (42.009475632459, '[imm1-testLoss3][+]', 1),
-             (26.038910948429, '[imm1-H2O][+]', 1),
-             (42.009475632459, '[imm2-testLoss3][+]', 2),
-             (26.038910948429, '[imm2-H2O][+]', 2),
-             (42.009475632459, '[imm3-testLoss3][+]', 3),
-             (26.038910948429, '[imm3-H2O][+]', 3),
-             (101.107324862499, 'imm(K)', 0),
-             (72.044390252029, 'b1[+]', 1),
-             (55.01784115090901, '[b1-NH3][+]', 1),
-             (63.044390252029004, '[b1-testLoss][+]', 1),
-             (143.081504037179, 'b2[+]', 2),
-             (126.054954936059, '[b2-NH3][+]', 2),
-             (134.081504037179, '[b2-testLoss][+]', 2),
-             (214.118617822329, 'b3[+]', 3),
-             (197.09206872120902, '[b3-NH3][+]', 3),
-             (205.118617822329, '[b3-testLoss][+]', 3),
-             (107.56294714460401, 'b3[2+]', 3),
-             (99.04967259404401, '[b3-NH3][2+]', 3),
-             (103.06294714460401, '[b3-testLoss][2+]', 3),
-             (99.06732486249899, '[imm4-testLoss3][+]', 4),
-             (83.096760178469, '[imm4-H2O][+]', 4),
-             (21.508376049669, '[imm3-testLoss3][2+]', 3),
-             (13.523093707653999, '[imm3-H2O][2+]', 3),
-             (360.22414552154896, '[M+H][+]', 4),
-             (316.234315521549, '[M-CO2][+]', 4),
-             (347.22414552154896, '[M-testLoss2][+]', 4),
-             (180.615710994214, '[M+H][2+]', 4),
-             (158.620795994214, '[M-CO2][2+]', 4),
-             (174.115710994214, '[M-testLoss2][2+]', 4),
-             (50.037300664689, '[imm4-testLoss3][2+]', 4),
-             (42.052018322674, '[imm4-H2O][2+]', 4)
+            (42.009475632459, '[imm1-testLoss3][+]', 1),
+            (26.038910948429, '[imm1-H2O][+]', 1),
+            (42.009475632459, '[imm2-testLoss3][+]', 2),
+            (26.038910948429, '[imm2-H2O][+]', 2),
+            (42.009475632459, '[imm3-testLoss3][+]', 3),
+            (26.038910948429, '[imm3-H2O][+]', 3),
+            (101.107324862499, 'imm(K)', 0),
+            (72.044390252029, 'b1[+]', 1),
+            (55.01784115090901, '[b1-NH3][+]', 1),
+            (63.044390252029004, '[b1-testLoss][+]', 1),
+            (143.081504037179, 'b2[+]', 2),
+            (126.054954936059, '[b2-NH3][+]', 2),
+            (134.081504037179, '[b2-testLoss][+]', 2),
+            (214.118617822329, 'b3[+]', 3),
+            (197.09206872120902, '[b3-NH3][+]', 3),
+            (205.118617822329, '[b3-testLoss][+]', 3),
+            (107.56294714460401, 'b3[2+]', 3),
+            (99.04967259404401, '[b3-NH3][2+]', 3),
+            (103.06294714460401, '[b3-testLoss][2+]', 3),
+            (99.06732486249899, '[imm4-testLoss3][+]', 4),
+            (83.096760178469, '[imm4-H2O][+]', 4),
+            (21.508376049669, '[imm3-testLoss3][2+]', 3),
+            (13.523093707653999, '[imm3-H2O][2+]', 3),
+            (360.22414552154896, '[M+H][+]', 4),
+            (316.234315521549, '[M-CO2][+]', 4),
+            (347.22414552154896, '[M-testLoss2][+]', 4),
+            (180.615710994214, '[M+H][2+]', 4),
+            (158.620795994214, '[M-CO2][2+]', 4),
+            (174.115710994214, '[M-testLoss2][2+]', 4),
+            (50.037300664689, '[imm4-testLoss3][2+]', 4),
+            (42.052018322674, '[imm4-H2O][2+]', 4)
         }
 
         self.assertEqual(expected_ions, set(ions))
