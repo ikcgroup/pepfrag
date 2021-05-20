@@ -149,9 +149,12 @@ std::map<long, double> modSiteListToMap(PyObject* source, size_t seqLen) {
 		if (PyLong_Check(site)) {
 			siteIdx = PyLong_AsLong(site);
 		}
-		else {
+		else if (PyUnicode_Check(site)) {
 			std::string siteStr = PyUnicode_AsUTF8(site);
 			siteIdx = (siteStr == "N-term" || siteStr == "nterm") ? 0 : seqLen + 1;
+		}
+		else {
+			throw std::logic_error("Modification site was not an integer or a string");
 		}
 
 		PyObject* modMass = PyObject_GetAttrString(modSite, "mass");
