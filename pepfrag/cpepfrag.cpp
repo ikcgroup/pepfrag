@@ -89,7 +89,7 @@ PyObject* python_calculateMass(PyObject* module, PyObject* args) {
 
         return vectorToList(calculateMass(
             seq,
-            modSiteListToVector(modSites, seq.size()),
+            modSiteListToMap(modSites, seq.size()),
             PyLong_AsLong(massType)
         ), &PyFloat_FromDouble);
 	}

@@ -32,10 +32,7 @@ of monoisotopic masses and introducing radical peptide fragment generation.
 Fragment Generation
 -------------------
 
-Fragment ions can be generated using the :func:`~pepfrag.Peptide.fragment` method;
-for efficiency when the same :class:`~pepfrag.Peptide` instance is used repeatedly,
-the resulting fragments are cached in the :attr:`~pepfrag.Peptide.fragment_ions` attribute.
-This cache is invalidated if the instance attributes are changed.
+Fragment ions can be generated using the :func:`~pepfrag.Peptide.fragment` method.
 
 The generated fragment ions can be customized using the ``ion_types`` argument to
 :func:`~pepfrag.Peptide.fragment`, which takes a dictionary mapping the desired
