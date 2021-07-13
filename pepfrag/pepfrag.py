@@ -303,7 +303,7 @@ class Peptide:
 
         pep_mass = self.peptide_mass
 
-        y_base = FIXED_MASSES["H2O"] if pep_mass[-1] == 0. else pep_mass[-1]
+        y_base = FIXED_MASSES["H2O"] + pep_mass[-1]
         b_base = pep_mass[0]
         # Reverse the sequence portion of the list (i.e. pep_mass[1:-1])
         rev_seq_masses = pep_mass[-2:0:-1]
